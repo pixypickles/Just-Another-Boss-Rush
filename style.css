@@ -124,3 +124,28 @@
   .bossBar{left:174px;right:8px;top:49px}
   .panel{top:91px;width:220px}
 }
+
+/* v7 party setup */
+#start{overflow:auto}
+#card{margin:auto}
+.partySetup{max-width:610px;margin:14px auto 18px;padding:13px;border-radius:15px;background:#0b111dd9;border:1px solid #ffffff20;text-align:left}
+.setupLine{display:grid;grid-template-columns:150px 1fr;align-items:center;gap:10px}
+.setupLine label,.setupTitle{font-weight:900;color:#ffe29a;font-size:13px}
+.setupTitle{margin-top:11px;margin-bottom:7px}
+#partyMode{width:100%;padding:9px 10px;border-radius:10px;border:1px solid #ffffff2a;background:#111827;color:#fff;font:inherit}
+.partyChoices,.startChoices{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.partyChoice{padding:10px 5px;border-radius:10px;border:1px solid #ffffff2a;background:#182133;color:#dce4f2;font-weight:900}
+.partyChoice.selected{background:linear-gradient(#ffe994,#d9972d);color:#231600;border-color:#fff0ad}
+.partyChoice.locked{opacity:.45}
+.startChoices label{padding:8px 5px;border-radius:9px;background:#131b2a;border:1px solid #ffffff1d;text-align:center;font-size:12px}
+.startChoices label.disabled{opacity:.35}
+.startChoices input{margin-right:4px}
+.setupStatus{margin-top:9px;color:#9fdcff;font-size:11px;text-align:center}
+.partyRow[hidden]{display:none!important}
+@media(max-width:520px){
+ #card{padding:20px 15px}
+ .roles{font-size:11px}
+ .setupLine{grid-template-columns:105px 1fr}
+ .partyChoices,.startChoices{gap:4px}
+ .partyChoice,.startChoices label{font-size:10px;padding:8px 3px}
+}

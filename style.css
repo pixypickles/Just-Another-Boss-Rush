@@ -284,3 +284,6 @@
     height:48px;
   }
 }
+
+/* 戦闘中の操作説明パネルは非表示 */
+#hud > .panel { display: none !important; }

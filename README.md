@@ -10,3 +10,8 @@
 ## GitHubへの反映
 `index.html`、`style.css`、`game.js`、`.nojekyll` を上書きしてください。
 古い表示が残る場合は公開URL末尾に `?v=13` を付けてください。
+
+
+## v14 changes
+- Clear any normal mode once to unlock Awakening Musou Mode (saved in localStorage).
+- Awakening mode is solo-only, removes all skill cooldowns, and strengthens bosses.

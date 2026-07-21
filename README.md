@@ -1,12 +1,32 @@
-# 3 HEROES: FIVE BOSS CHAMBERS
+# ありきたりなボス5戦
 
-ZIPを展開し、`index.html` をブラウザで開いてください。
+**Just Another Boss Rush**
+
+GitHub Pagesでそのまま公開できる静的ゲームです。
+
+## 公開方法
+
+1. このフォルダの中身をGitHubリポジトリのルートへ配置します。
+2. GitHubの **Settings → Pages** を開きます。
+3. **Deploy from a branch**、`main`、`/(root)` を選択して保存します。
+4. 表示されたPages URLをスマートフォンで開きます。
+
+## ファイル構成
+
+```text
+index.html
+style.css
+game.js
+.nojekyll
+assets/
+```
+
+画像を読み込み終えるまでスタートボタンは無効です。読み込みに失敗した場合は、不足しているファイル名がタイトル画面に表示されます。
 
 ## 操作
+
 - 移動: WASD / 矢印 / 左スティック
 - A: J
 - B: K
 - C: L
-- D（キャラ交代）: I
-
-画像ファイルは `assets` フォルダに入っています。`index.html` と同じ構成のまま利用してください。
+- D（操作キャラ交代）: I

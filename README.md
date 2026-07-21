@@ -15,3 +15,7 @@
 ## v14 changes
 - Clear any normal mode once to unlock Awakening Musou Mode (saved in localStorage).
 - Awakening mode is solo-only, removes all skill cooldowns, and strengthens bosses.
+
+## 追加調整
+- 魔法使いのライフドレイン使用時、吸収範囲を示す半透明の紫色の円が表示され、中心へ縮小します。
+- 魔法使いのC「ミニトルネード」が効果中、範囲内の敵弾を消します。

@@ -1,8 +1,20 @@
-# ありきたりなボス5戦 / Just Another Boss Rush
+# ありきたりなボス5戦 — GitHub Pages版 v3
 
-GitHub Pages向け修正版です。画像は `game.js` に内蔵しているため、assetsフォルダは不要です。
+## 更新内容
+- 折りたたみスマホの縦長・横長表示で、ボスHPと味方HPが重ならないようHUDを再配置
+- 味方3人のHPを左上へコンパクト表示
+- 操作キャラ説明をHP欄の下へ移動
+- ナイト画像を盾で片手が隠れる新画像へ変更
+- 魔法使い画像を白青衣装の新画像へ変更
+- 画像は `game.js` に内蔵済み
+- CSS/JavaScriptのキャッシュ更新用に `?v=3` を設定
 
-## 公開
-リポジトリのルートへ `index.html`, `style.css`, `game.js`, `.nojekyll` をアップロードし、Settings → Pages で main / root を選択してください。
+## GitHubへの反映
+リポジトリのルートに、次のファイルを上書きしてください。
 
-ブラウザに以前の版が残る場合は、ページを再読み込みするかキャッシュを削除してください。
+- `index.html`
+- `style.css`
+- `game.js`
+- `.nojekyll`
+
+GitHub Pages更新後、古い表示が残る場合はURL末尾に `?v=3` を付けて開くか、ブラウザを再読み込みしてください。

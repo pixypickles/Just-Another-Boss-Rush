@@ -7,3 +7,120 @@
 #card h1 small{display:block;font-size:.3em;letter-spacing:.16em;color:#8ed8ff;margin-top:8px}#play:disabled{filter:grayscale(1);opacity:.65;cursor:wait;box-shadow:none}
 .partyHud{position:absolute;right:12px;top:88px;width:250px;padding:10px;border-radius:14px;background:#0c111bd9;border:1px solid #ffffff20;display:grid;gap:7px}.partyRow{display:grid;grid-template-columns:58px 1fr 58px;align-items:center;gap:7px;font-size:11px}.partyRow>span{font-weight:900;color:#f2f5fa}.partyRow>b{text-align:right;font-size:10px;color:#cfd8e7}.partyBar{height:9px;border-radius:999px;background:#ffffff1a;overflow:hidden;border:1px solid #ffffff20}.partyBar>div{height:100%;width:100%;background:linear-gradient(90deg,#4fe58b,#e8f58a);transition:width .15s}.partyRow.active{outline:2px solid #ffe58c;border-radius:8px;padding:3px}.partyRow.dead{opacity:.38;filter:grayscale(1)}
 @media (hover:none),(pointer:coarse),(max-width:900px){.partyHud{right:8px;top:112px;width:192px;padding:7px}.partyRow{grid-template-columns:48px 1fr 44px;gap:4px;font-size:9px}.partyRow>b{font-size:8px}}
+
+
+/* v3: foldable-phone HUD layout */
+.panel .bar,
+.panel #hpText{display:none}
+
+.partyHud{
+  left:12px;
+  right:auto;
+  top:12px;
+  width:174px;
+  padding:8px;
+  gap:5px;
+  z-index:6;
+}
+.partyRow{
+  grid-template-columns:48px 1fr;
+  grid-template-areas:
+    "name value"
+    "bar bar";
+  gap:2px 6px;
+  font-size:10px;
+}
+.partyRow>span{grid-area:name}
+.partyRow>b{grid-area:value;font-size:9px}
+.partyBar{grid-area:bar;height:7px}
+.partyRow.active{padding:2px}
+
+.panel{
+  left:12px;
+  top:126px;
+  width:238px;
+  z-index:5;
+}
+.top{
+  top:12px;
+  max-width:calc(100% - 390px);
+  white-space:normal;
+  justify-content:center;
+  text-align:center;
+  line-height:1.15;
+}
+.bossBar{
+  top:64px;
+  width:min(520px,52%);
+}
+
+@media (hover:none),(pointer:coarse),(max-width:900px){
+  .partyHud{
+    left:max(6px,env(safe-area-inset-left));
+    right:auto;
+    top:max(6px,env(safe-area-inset-top));
+    width:148px;
+    padding:6px;
+  }
+  .partyRow{
+    grid-template-columns:43px 1fr;
+    font-size:9px;
+  }
+  .partyRow>b{font-size:8px}
+  .partyBar{height:6px}
+
+  .top{
+    left:164px;
+    right:max(6px,env(safe-area-inset-right));
+    top:max(7px,env(safe-area-inset-top));
+    transform:none;
+    max-width:none;
+    min-height:46px;
+    padding:6px 8px;
+    gap:6px;
+    border-radius:16px;
+    font-size:clamp(11px,2.7vw,16px);
+  }
+  .bossBar{
+    left:164px;
+    right:max(8px,env(safe-area-inset-right));
+    top:61px;
+    transform:none;
+    width:auto;
+    height:13px;
+  }
+  .panel{
+    left:max(7px,env(safe-area-inset-left));
+    top:132px;
+    width:min(230px,54vw);
+    padding:8px 10px;
+  }
+  .name{font-size:15px}
+  .ability{font-size:10px}
+}
+
+@media (max-width:520px){
+  .partyHud{width:132px}
+  .partyRow{grid-template-columns:38px 1fr;font-size:8px}
+  .partyRow>b{font-size:7px}
+  .top{
+    left:145px;
+    font-size:10px;
+    padding:5px 6px;
+  }
+  .bossName{font-size:10px}
+  .stageNo{font-size:10px}
+  .bossBar{left:145px;top:58px;height:11px}
+  .panel{
+    top:119px;
+    width:205px;
+    max-width:56vw;
+  }
+}
+
+@media (orientation:landscape) and (max-height:700px){
+  .partyHud{width:156px;top:6px}
+  .top{left:174px;right:8px;top:6px;min-height:38px}
+  .bossBar{left:174px;right:8px;top:49px}
+  .panel{top:91px;width:220px}
+}

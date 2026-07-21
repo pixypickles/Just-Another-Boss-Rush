@@ -178,3 +178,109 @@
     max-height:none;
   }
 }
+
+
+/* v13: tall phones use an upper battlefield and lower control deck */
+@media (orientation:portrait) and (max-aspect-ratio:0.78){
+  #app{
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100dvh;
+    background:radial-gradient(circle at 50% 30%,#1b2230,#05080e 68%);
+  }
+
+  #stage{
+    position:relative;
+    width:100vw;
+    height:min(100dvh,145vw);
+    max-width:100vw;
+    max-height:none;
+    border-radius:0;
+    overflow:hidden;
+  }
+
+  canvas{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100vw;
+  }
+
+  #hud{
+    position:absolute;
+    inset:0;
+  }
+
+  #actions{
+    top:auto;
+    right:max(12px,env(safe-area-inset-right));
+    bottom:max(16px,env(safe-area-inset-bottom));
+    width:204px;
+    height:204px;
+    grid-template-columns:repeat(3,62px);
+    grid-template-rows:repeat(3,62px);
+    gap:7px;
+  }
+
+  .tb{
+    width:62px;
+    height:62px;
+    font-size:10px;
+  }
+
+  .tb b{font-size:24px}
+
+  #joystick{
+    top:auto;
+    left:max(16px,env(safe-area-inset-left));
+    bottom:max(20px,env(safe-area-inset-bottom));
+    width:124px;
+    height:124px;
+  }
+
+  #stick{
+    left:35px;
+    top:35px;
+    width:54px;
+    height:54px;
+  }
+
+  .partyHud,.top{top:8px}
+  .bossBar{top:60px}
+
+  .panel{
+    top:132px;
+    max-height:118px;
+    overflow:hidden;
+  }
+}
+
+@media (orientation:portrait) and (max-width:420px){
+  #actions{
+    width:184px;
+    height:184px;
+    grid-template-columns:repeat(3,56px);
+    grid-template-rows:repeat(3,56px);
+    gap:7px;
+  }
+
+  .tb{
+    width:56px;
+    height:56px;
+  }
+
+  #joystick{
+    width:112px;
+    height:112px;
+  }
+
+  #stick{
+    left:32px;
+    top:32px;
+    width:48px;
+    height:48px;
+  }
+}

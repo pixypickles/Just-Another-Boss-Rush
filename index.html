@@ -10,10 +10,15 @@
 <body><div id="app"><div id="stage"><canvas id="game" width="1000" height="1000"></canvas><div id="hud">
 <div class="top"><span class="stageNo" id="stageNo">BOSS 1 / 5</span><span class="bossName" id="bossName">巨腕トロール・ガンバ</span></div><div class="bossBar"><div class="bossFill" id="bossFill"></div></div>
 <div class="panel"><div>操作中：<span class="name" id="heroName">ナイト</span></div><div class="ability" id="ability"></div><div class="bar"><div class="fill" id="hpFill"></div></div><div class="ability" id="hpText"></div></div>
+<div id="partyHud" class="partyHud">
+  <div class="partyRow" data-hero="knight"><span>ナイト</span><div class="partyBar"><div id="partyKnightFill"></div></div><b id="partyKnightText">540/540</b></div>
+  <div class="partyRow" data-hero="mage"><span>魔法使い</span><div class="partyBar"><div id="partyMageFill"></div></div><b id="partyMageText">340/340</b></div>
+  <div class="partyRow" data-hero="healer"><span>ヒーラー</span><div class="partyBar"><div id="partyHealerFill"></div></div><b id="partyHealerText">390/390</b></div>
+</div>
 <div id="notice"></div><div class="help">移動：WASD / 矢印　A：J　B：K　C：L　D：I（キャラチェンジ）</div>
 <div id="touch"><div id="joystick"><div id="stick"></div></div><div class="actions"><button class="tb" id="a" data-key="KeyJ"><b>A</b>攻撃</button><button class="tb" id="b" data-key="KeyK"><b>B</b>特殊</button><button class="tb" id="c" data-key="KeyL"><b>C</b>補助</button><button class="tb" id="d" data-key="KeyI"><b>D</b>交代</button></div></div>
-<div id="start"><div id="card"><h1>ありきたりなボス5戦<br><small>JUST ANOTHER BOSS RUSH</small></h1><p>トロール、ドラキュラ、ケルベロス、ドラゴン、魔王。王道ボスを3人の英雄で順番に倒します。</p><div class="roles"><div><b>ナイト</b>　A：剣の大攻撃　B：後方まで守る盾　C：自己回復・小</div><div><b>魔法使い</b>　A：3方向ファイアボール　B：3方向フリーズ　C：周囲に小竜巻</div><div><b>ヒーラー</b>　A：自分と近くの仲間を中回復　B：誘導ライトボール　C：飛び道具反射壁</div></div><button id="play" disabled>画像を読み込み中…</button><div id="loadStatus" class="small">0 / 9</div><div class="small">Dボタンで操作キャラを切り替えられます。</div></div></div>
+<div id="start"><div id="card"><h1>ありきたりなボス5戦<br><small>JUST ANOTHER BOSS RUSH</small></h1><p>トロール、ドラキュラ、ケルベロス、ドラゴン、魔王。王道ボスを3人の英雄で順番に倒します。</p><div class="roles"><div><b>ナイト</b>　A：剣の大攻撃　B：後方まで守る盾　C：自己回復・小</div><div><b>魔法使い</b>　A：3方向ファイアボール　B：3方向フリーズ　C：周囲に小竜巻</div><div><b>ヒーラー</b>　A：自分と近くの仲間を中回復　B：誘導ライトボール　C：飛び道具反射壁</div></div><button id="play">ボス部屋へ入る</button><div id="loadStatus" class="small">画像はゲーム本体に内蔵されています。</div><div class="small">Dボタンで操作キャラを切り替えられます。</div></div></div>
 </div></div></div>
 
-<script src="game.js" defer></script>
+<script src="game.js?v=2" defer></script>
 </body></html>

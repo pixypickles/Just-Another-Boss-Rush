@@ -39,3 +39,8 @@
 ## v28 start fix
 - Fixed the start button failure caused by missing Rune Mage party HUD references.
 - Added safe HUD updates so future character additions do not block battle start.
+
+## v29 ルーンオーバーロード強化
+- 覚醒中に設置した全ルーンの判定サイズを1.2倍に拡大。
+- 覚醒中に設置した氷ルーンだけが、ボスへゆっくり追尾します。
+- 炎・雷ルーンは固定のままなので、氷でボスを罠地帯へ送り込むコンボが可能です。

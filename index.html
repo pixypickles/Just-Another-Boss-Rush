@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090d14">
 <title>ありきたりなボス5戦 | Just Another Boss Rush</title>
-<link rel="stylesheet" href="style.css?v=16">
+<link rel="stylesheet" href="style.css?v=17">
 </head>
 <body><div id="app"><div id="stage"><canvas id="game" width="1000" height="1000"></canvas><div id="hud">
 <div class="top"><span class="stageNo" id="stageNo">BOSS 1 / 5</span><span class="bossName" id="bossName">巨腕トロール・ガンバ</span></div><div class="bossBar"><div class="bossFill" id="bossFill"></div></div>
@@ -14,11 +14,12 @@
   <div class="partyRow" data-hero="knight"><span>ナイト</span><div class="partyBar"><div id="partyKnightFill"></div></div><b id="partyKnightText">540/540</b></div>
   <div class="partyRow" data-hero="mage"><span>魔法使い</span><div class="partyBar"><div id="partyMageFill"></div></div><b id="partyMageText">340/340</b></div>
   <div class="partyRow" data-hero="healer"><span>ヒーラー</span><div class="partyBar"><div id="partyHealerFill"></div></div><b id="partyHealerText">390/390</b></div>
-  <div class="partyRow" data-hero="monk" hidden><span>モンク</span><div class="partyBar"><div id="partyMonkFill"></div></div><b id="partyMonkText">500/500</b></div>
+  <div class="partyRow" data-hero="monk" hidden><span>モンク</span><div class="partyBar"><div id="partyMonkFill"></div></div><b id="partyMonkText">650/650</b></div>
+  <div class="partyRow" data-hero="magicblade" hidden><span>魔剣士</span><div class="partyBar"><div id="partyMagicbladeFill"></div></div><b id="partyMagicbladeText">470/470</b></div>
 </div>
 <div id="notice"></div><div class="help">移動：WASD / 矢印　A：J　B：K　C：L　D：I（キャラチェンジ）</div>
 <div id="touch"><div id="joystick"><div id="stick"></div></div><div class="actions"><button class="tb" id="a" data-key="KeyJ"><b>A</b>攻撃</button><button class="tb" id="b" data-key="KeyK"><b>B</b>特殊</button><button class="tb" id="c" data-key="KeyL"><b>C</b>補助</button><button class="tb" id="d" data-key="KeyI"><b>D</b>交代</button></div></div>
-<div id="start"><div id="card"><h1>ありきたりなボス5戦<br><small>JUST ANOTHER BOSS RUSH</small></h1><p>トロール、ドラキュラ、ケルベロス、ドラゴン、魔王。王道ボスを英雄たちで順番に倒します。</p><div class="roles"><div><b>ナイト</b>　A：剣の大攻撃　B：後方まで守る盾　C：自己回復・中</div><div><b>魔法使い</b>　A：2方向ファイアボール　B：2方向フリーズ　C：周囲に小竜巻</div><div><b>ヒーラー</b>　A：誘導ライトボール　B：自分と近くの仲間を中回復　C：飛び道具反射壁</div><div class="unlockRole"><b>モンク（クリア後解放）</b>　常時自然回復　A：連続パンチ　B：気功弾　C：気合い（敵を弾き、敵弾を消す）　D：阿修羅拳</div></div>
+<div id="start"><div id="card"><h1>ありきたりなボス5戦<br><small>JUST ANOTHER BOSS RUSH</small></h1><p>トロール、ドラキュラ、ケルベロス、ドラゴン、魔王。王道ボスを英雄たちで順番に倒します。</p><div class="roles"><div><b>ナイト</b>　A：剣の大攻撃　B：後方まで守る盾　C：自己回復・中</div><div><b>魔法使い</b>　A：2方向ファイアボール　B：2方向フリーズ　C：周囲に小竜巻</div><div><b>ヒーラー</b>　A：誘導ライトボール　B：自分と近くの仲間を中回復　C：飛び道具反射壁</div><div class="unlockRole"><b>モンク（クリア後解放）</b>　常時自然回復　A：連続パンチ　B：気功弾　C：気合い（敵を弾き、敵弾を消す）　D：百裂拳（10連撃）</div><div><b>魔剣士</b>　A：魔力斬り　B：三方向の魔剣波　C：魔力解放　D：魔剣乱舞（1人モード）</div></div>
 <div class="partySetup">
  <div class="setupLine"><label for="partyMode">プレイ人数</label><select id="partyMode"><option value="3" selected>3人モード</option><option value="2">2人モード</option><option value="1">1人モード</option></select></div>
  <div class="setupTitle">参加キャラクター</div>
@@ -27,6 +28,7 @@
   <button type="button" class="partyChoice selected" data-hero="mage">魔法使い</button>
   <button type="button" class="partyChoice selected" data-hero="healer">ヒーラー</button>
   <button type="button" class="partyChoice unlockLocked" data-hero="monk" disabled>モンク（未解放）</button>
+  <button type="button" class="partyChoice" data-hero="magicblade">魔剣士</button>
  </div>
  <div class="setupTitle">最初に操作するキャラクター</div>
  <div class="startChoices">
@@ -34,11 +36,12 @@
   <label><input type="radio" name="startHero" value="mage">魔法使い</label>
   <label><input type="radio" name="startHero" value="healer">ヒーラー</label>
   <label class="disabled"><input type="radio" name="startHero" value="monk" disabled>モンク</label>
+  <label><input type="radio" name="startHero" value="magicblade">魔剣士</label>
  </div>
  <div id="setupStatus" class="setupStatus"></div>
 </div>
 <button id="play" type="button">ボス部屋へ入る</button><div id="loadStatus" class="small">画像はゲーム本体に内蔵されています。</div><div class="small">Dボタンで操作キャラを切り替えられます。</div></div></div>
 </div></div></div>
 
-<script src="game.js?v=16" defer></script>
+<script src="game.js?v=17" defer></script>
 </body></html>

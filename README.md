@@ -34,3 +34,8 @@
 - B: 氷ルーン（最大4個。ボスを壁まで滑らせ衝突ダメージ）
 - C: 雷ルーン（最大5個。中ダメージ＋短時間麻痺）
 - 1人D: ルーンオーバーロード（15秒間設置数無制限、CT14秒）
+
+
+## v28 start fix
+- Fixed the start button failure caused by missing Rune Mage party HUD references.
+- Added safe HUD updates so future character additions do not block battle start.

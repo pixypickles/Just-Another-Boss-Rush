@@ -287,3 +287,9 @@
 
 /* 戦闘中の操作説明パネルは非表示 */
 #hud > .panel { display: none !important; }
+
+/* v15 monk unlock */
+.partyChoices,.startChoices{grid-template-columns:repeat(4,1fr)}
+.partyChoice.unlockLocked{opacity:.35;filter:grayscale(1);cursor:not-allowed}
+.unlockRole{color:#d7dfed}
+@media(max-width:520px){.partyChoices,.startChoices{grid-template-columns:repeat(2,1fr)}}

@@ -14,35 +14,36 @@ function enemyDamage(n){return awakenedMode?n*1.25:n}
 const shots=[],particles=[],walls=[],slashes=[],fistTrails=[],minions=[],lasers=[],holyFx=[],holyDots=[],runes=[];
 const AWAKEN_MINION_LIMIT=28,AWAKEN_SUMMON_MULTIPLIER=4;
 const spriteFiles={
- hero_dragonknight:'assets/sprites/hero_dragonknight.png',
- hero_qigong:'assets/sprites/hero_qigong.png',
- hero_runemage:'assets/sprites/hero_runemage.png',
- hero_highpriest:'assets/sprites/hero_highpriest.png',
- hero_ninja:'assets/sprites/hero_ninja.png',
- hero_monk:'assets/sprites/hero_monk.png',
- hero_magicblade:'assets/sprites/hero_magicblade.png',
- hero_mage:'assets/sprites/hero_mage.png',
- hero_knight:'assets/sprites/hero_knight.png',
- hero_healer:'assets/sprites/hero_healer.png',
- boss_troll_up:'assets/sprites/boss_troll_up.png',
- boss_troll_down:'assets/sprites/boss_troll_down.png',
- boss_dracula:'assets/sprites/boss_dracula.png',
- boss_cerberus:'assets/sprites/boss_cerberus.png',
- boss_dragon:'assets/sprites/boss_dragon.png',
- boss_demonking:'assets/sprites/boss_demonking.png'
+ hero_dragonknight:'hero_dragonknight.png',
+ hero_qigong:'hero_qigong.png',
+ hero_runemage:'hero_runemage.png',
+ hero_highpriest:'hero_highpriest.png',
+ hero_ninja:'hero_ninja.png',
+ hero_monk:'hero_monk.png',
+ hero_magicblade:'hero_magicblade.png',
+ hero_mage:'hero_mage.png',
+ hero_knight:'hero_knight.png',
+ hero_healer:'hero_healer.png',
+ boss_troll_up:'boss_troll_up.png',
+ boss_troll_down:'boss_troll_down.png',
+ boss_dracula:'boss_dracula.png',
+ boss_cerberus:'boss_cerberus.png',
+ boss_dragon:'boss_dragon.png',
+ boss_demonking:'boss_demonking.png'
 };
 const sprites={};
 let assetsReady=true;
+const scriptBase=(()=>{try{const src=document.currentScript&&document.currentScript.src;return src?new URL('.',src):new URL('.',document.baseURI)}catch(e){return new URL('.',location.href)}})();
 function loadSprites(){
  const entries=Object.entries(spriteFiles),status=document.getElementById('loadStatus');
  let loaded=0,failed=0;
  status.textContent='ゲームは開始できます。画像を裏で準備中…';
- for(const [key,url] of entries){
-  const im=new Image();sprites[key]=im;
-  im.decoding='async';
-  im.onload=()=>{loaded++;if(loaded+failed===entries.length)status.textContent=failed?`画像 ${loaded}/${entries.length} 読み込み。残りは図形表示です。`:'画像の読み込み完了';};
-  im.onerror=()=>{failed++;if(loaded+failed===entries.length)status.textContent=`画像 ${loaded}/${entries.length} 読み込み。残りは図形表示です。`;};
-  im.src=url;
+ for(const [key,file] of entries){
+  const im=new Image();sprites[key]=im;im.decoding='async';
+  const candidates=[new URL(file,scriptBase).href,new URL('assets/sprites/'+file,scriptBase).href];let ci=0;
+  im.onload=()=>{loaded++;if(loaded+failed===entries.length)status.textContent=failed?`画像 ${loaded}/${entries.length} 読み込み。${failed}枚は図形表示です。`:'画像の読み込み完了';};
+  im.onerror=()=>{ci++;if(ci<candidates.length){im.src=candidates[ci];return}failed++;console.warn('Sprite load failed:',key,candidates);if(loaded+failed===entries.length)status.textContent=`画像 ${loaded}/${entries.length} 読み込み。${failed}枚は図形表示です。`;};
+  im.src=candidates[0];
  }
 }
 function drawSprite(img,x,y,maxW,maxH,flip=false,alpha=1,bob=0){

@@ -36,14 +36,15 @@ const sprites={};
 let assetsReady=true;
 const scriptBase=(()=>{try{const src=document.currentScript&&document.currentScript.src;return src?new URL('.',src):new URL('.',document.baseURI)}catch(e){return new URL('.',location.href)}})();
 function loadSprites(){
- const entries=Object.entries(spriteFiles),status=document.getElementById('loadStatus');
+ const entries=Object.entries(spriteFiles),status=document.getElementById('imageLoadStatus')||document.getElementById('loadStatus');
  let loaded=0,failed=0;
- status.textContent='ゲームは開始できます。画像を裏で準備中…';
+ const refresh=()=>{const done=loaded+failed;if(done<entries.length)status.textContent=`画像読み込み ${done}/${entries.length}（成功 ${loaded}）`;else status.textContent=failed?`画像読み込み ${done}/${entries.length}（成功 ${loaded}・失敗 ${failed}）`:`画像準備完了 ${loaded}/${entries.length}`};
+ refresh();
  for(const [key,file] of entries){
   const im=new Image();sprites[key]=im;im.decoding='async';
   const candidates=[new URL(file,scriptBase).href,new URL('assets/sprites/'+file,scriptBase).href];let ci=0;
-  im.onload=()=>{loaded++;if(loaded+failed===entries.length)status.textContent=failed?`画像 ${loaded}/${entries.length} 読み込み。${failed}枚は図形表示です。`:'画像の読み込み完了';};
-  im.onerror=()=>{ci++;if(ci<candidates.length){im.src=candidates[ci];return}failed++;console.warn('Sprite load failed:',key,candidates);if(loaded+failed===entries.length)status.textContent=`画像 ${loaded}/${entries.length} 読み込み。${failed}枚は図形表示です。`;};
+  im.onload=()=>{loaded++;refresh()};
+  im.onerror=()=>{ci++;if(ci<candidates.length){im.src=candidates[ci];return}failed++;console.warn('Sprite load failed:',key,candidates);refresh()};
   im.src=candidates[0];
  }
 }
@@ -353,7 +354,8 @@ boss.draw();heroes.forEach((h,i)=>h.draw(i));
 function loop(t){const dt=Math.min(.033,(t-last)/1000||0);last=t;if(running)update(dt);draw();requestAnimationFrame(loop)}
 addEventListener('keydown',e=>{if(!keys.has(e.code))pressed.add(e.code);keys.add(e.code);if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault()});addEventListener('keyup',e=>{keys.delete(e.code);released.add(e.code)});
 const joyEl=document.getElementById('joystick'),stick=document.getElementById('stick');function joyMove(e){const r=joyEl.getBoundingClientRect(),p=[...e.changedTouches].find(t=>t.identifier===joy.id);if(!p)return;let x=p.clientX-(r.left+r.width/2),y=p.clientY-(r.top+r.height/2),d=Math.hypot(x,y),m=r.width*.34;if(d>m){x=x/d*m;y=y/d*m}joy.x=x/m;joy.y=y/m;stick.style.transform=`translate(${x}px,${y}px)`}joyEl.addEventListener('touchstart',e=>{const t=e.changedTouches[0];joy.id=t.identifier;joyMove(e);e.preventDefault()},{passive:false});joyEl.addEventListener('touchmove',e=>{joyMove(e);e.preventDefault()},{passive:false});joyEl.addEventListener('touchend',e=>{joy.x=joy.y=0;joy.id=null;stick.style.transform='translate(0,0)';e.preventDefault()},{passive:false});
-document.querySelectorAll('.tb').forEach(b=>{const code=b.dataset.key;const down=e=>{if(!keys.has(code))pressed.add(code);keys.add(code);b.classList.add('active');e.preventDefault()},up=e=>{keys.delete(code);released.add(code);b.classList.remove('active');e.preventDefault()};b.addEventListener('touchstart',down,{passive:false});b.addEventListener('touchend',up,{passive:false});b.addEventListener('mousedown',down);b.addEventListener('mouseup',up)});
+document.querySelectorAll('.tb').forEach(b=>{const code=b.dataset.key;const down=e=>{if(!keys.has(code))pressed.add(code);keys.add(code);b.classList.add('active');e.preventDefault()},up=e=>{if(keys.has(code))released.add(code);keys.delete(code);b.classList.remove('active');e.preventDefault?.()};b.addEventListener('touchstart',down,{passive:false});b.addEventListener('touchend',up,{passive:false});b.addEventListener('touchcancel',up,{passive:false});b.addEventListener('mousedown',down);b.addEventListener('mouseup',up);b.addEventListener('mouseleave',e=>{if(e.buttons===0)up(e)});b.addEventListener('contextmenu',e=>e.preventDefault())});
+addEventListener('blur',()=>resetCombatInput());document.addEventListener('visibilitychange',()=>{if(document.hidden)resetCombatInput()});
 const playButton=document.getElementById('play');
 const modeSelect=document.getElementById('partyMode'),partyChoices=[...document.querySelectorAll('.partyChoice')],startChoices=[...document.querySelectorAll('input[name="startHero"]')];
 function addAwakeningOption(){if([...modeSelect.options].some(o=>o.value==='awakening'))return;const o=document.createElement('option');o.value='awakening';o.textContent='覚醒無双モード（1人・CTなし・大量召喚）';modeSelect.appendChild(o)}

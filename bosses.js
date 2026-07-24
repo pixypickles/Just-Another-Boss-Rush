@@ -1,0 +1,70 @@
+class Boss{
+ constructor(def){const hp=Math.round(def.hp*(awakenedMode?1.7:1)),speed=def.speed*(awakenedMode?1.12:1);Object.assign(this,{...def,hp,maxHp:hp,speed,x:735,y:510,vx:0,vy:0,r:def.kind==='dragon'?82:def.kind==='cerberus'?76:def.kind==='troll'?70:64,cd:1.1,attack:0,volley:0,slow:0,freezeStop:0,dead:false,phase:0,inv:0,touchCd:0})}
+ damage(n){return enemyDamage(n)*(this.kind==='demonking'?1.08:1)}
+ hurt(n){if(this.dead)return;this.inv=.12;this.hp-=n;burst(this.x,this.y,'#ffd29d',5,150);if(this.hp<=0){this.hp=0;this.dead=true;bossDefeated()}}
+ update(dt){if(this.dead)return;this.inv=Math.max(0,this.inv-dt);this.cd-=dt;this.attack=Math.max(0,this.attack-dt);this.volley=Math.max(0,this.volley-dt);this.slow=Math.max(0,this.slow-dt);this.freezeStop=Math.max(0,this.freezeStop-dt);this.touchCd=Math.max(0,this.touchCd-dt);const alive=heroes.filter(h=>!h.dead);if(!alive.length)return;const target=alive.sort((a,b)=>Math.hypot(a.x-this.x,a.y-this.y)-Math.hypot(b.x-this.x,b.y-this.y))[0],n=norm(target.x-this.x,target.y-this.y),d=Math.hypot(target.x-this.x,target.y-this.y);let mx=0,my=0,sp=this.speed;if(this.kind==='troll'){mx=n.x;my=n.y;sp*=1.08}else if(this.kind==='cerberus'){if(d>205){mx=n.x;my=n.y}else if(d<125){mx=-n.x*.55;my=-n.y*.55}else{mx=-n.y*.42;my=n.x*.42}}else{const pref=this.kind==='dracula'?350:this.kind==='dragon'?330:370;if(d<pref-65){mx=-n.x;my=-n.y}else if(d>pref+70){mx=n.x*.45;my=n.y*.45}else{const side=Math.sin(performance.now()/650+bossIndex)>0?1:-1;mx=-n.y*.55*side;my=n.x*.55*side}sp*=this.kind==='dracula'?.72:this.kind==='dragon'?.62:.68}if(this.freezeStop>0){mx=my=0;sp=0}else if(this.slow>0)sp*=.38;this.vx+=(mx*sp-this.vx)*Math.min(1,dt*(this.kind==='troll'?4.2:2.6));this.vy+=(my*sp-this.vy)*Math.min(1,dt*(this.kind==='troll'?4.2:2.6));if(d<this.r+target.r+10){
+ const minD=this.r+target.r+12,overlap=Math.max(0,minD-d);
+ target.x+=n.x*(overlap*.72+4);target.y+=n.y*(overlap*.72+4);
+ this.x-=n.x*(overlap*.28+2);this.y-=n.y*(overlap*.28+2);
+ clampArena(target);clampArena(this);
+ if(this.touchCd<=0){target.hurt(this.damage(52+bossIndex*10),n.x*250,n.y*250);this.touchCd=.62}
+ this.vx-=n.x*70;this.vy-=n.y*70
+}if(this.cd<=0&&this.freezeStop<=0){this.special(target);this.cd=(this.kind==='troll'?1.75:this.kind==='dracula'?1.8:this.kind==='cerberus'?1.55:this.kind==='dragon'?1.4:Math.max(.82,1.25-this.phase*.015))*(awakenedMode?.82:1)}this.x+=this.vx*dt;this.y+=this.vy*dt;clampArena(this)}
+ radial(count,speed,type='enemy',damage=30,spread=0){for(let i=0;i<count;i++){const a=Math.PI*2*i/count+spread;shots.push({team:'boss',type,x:this.x,y:this.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:12,life:3.2,damage:this.damage(damage)})}}
+ aimed(target,count=3,speed=330,type='enemy',damage=34){const base=Math.atan2(target.y-this.y,target.x-this.x);for(let i=0;i<count;i++){const a=base+(i-(count-1)/2)*.16;shots.push({team:'boss',type,x:this.x,y:this.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:13,life:3,damage:this.damage(damage)})}}
+ summon(count=2,strong=false){
+  const requested=awakenedMode?count*AWAKEN_SUMMON_MULTIPLIER:count;
+  const available=awakenedMode?Math.max(0,AWAKEN_MINION_LIMIT-minions.length):requested;
+  const spawnCount=Math.min(requested,available);
+  if(spawnCount<=0){if(awakenedMode)notice(`手下は最大${AWAKEN_MINION_LIMIT}体！`,'#d9a5ff',600);return}
+  for(let i=0;i<spawnCount;i++){const a=Math.PI*2*i/spawnCount+Math.random()*.8,d=105+rnd(0,85);minions.push({
+   x:clamp(this.x+Math.cos(a)*d,120,880),y:clamp(this.y+Math.sin(a)*d,180,870),vx:0,vy:0,r:strong?25:21,
+   hp:strong?170:105,maxHp:strong?170:105,damage:this.damage(strong?34:24),cd:rnd(.2,.7),life:strong?22:16,strong
+  })}
+  notice(awakenedMode?`覚醒召喚！ 手下${spawnCount}体（最大${AWAKEN_MINION_LIMIT}体）`:(strong?'強化手下を召喚！':'手下を召喚！'),'#d9a5ff',700)
+ }
+ special(target){
+  this.phase++;
+  if(this.pattern==='slam'){const n=norm(target.x-this.x,target.y-this.y);this.vx=n.x*360;this.vy=n.y*360;this.slam(72)}
+  else if(this.pattern==='fire'){this.volley=.9;this.aimed(target,5,335,'enemy',34)}
+  else if(this.pattern==='all'){
+   if(this.phase%4===0)this.summon(1,false);
+   else if(this.phase%3===0)this.slam(78);
+   else{this.volley=1;this.aimed(target,5,355,'enemy',39)}
+  }else if(this.pattern==='dragon'){
+   if(this.phase%3===0)this.summon(2,false);
+   else if(this.phase%4===0)this.slam(86);
+   else{this.volley=1;this.aimed(target,7,375,'enemy',44)}
+  }else{
+   if(this.phase%3===0)this.summon(this.hp<this.maxHp*.5?3:2,true);
+   else if(this.phase%4===0)this.slam(this.hp<this.maxHp*.35?112:94);
+   else if(this.phase%2===0){this.volley=1;this.radial(14,320,'enemy',46,performance.now()/700)}
+   else{this.volley=1;this.aimed(target,this.hp<this.maxHp*.4?9:7,395,'enemy',52)}
+  }
+ }
+ slam(dmg){this.attack=.75;setTimeout(()=>{if(!running||this.dead)return;for(const h of heroes)if(!h.dead&&Math.hypot(h.x-this.x,h.y-this.y)<205)h.hurt(this.damage(dmg));burst(this.x,this.y,'#ffd08a',42,470);shake=22},430)}
+ draw(){
+  const alive=heroes.filter(h=>!h.dead),target=alive.length?alive.reduce((a,b)=>Math.hypot(a.x-this.x,a.y-this.y)<Math.hypot(b.x-this.x,b.y-this.y)?a:b):null;
+  const flip=target?target.x<this.x:false;let key='boss_'+this.kind;
+  if(this.kind==='troll')key=this.attack>0&&this.attack<.48?'boss_troll_down':'boss_troll_up';
+  const sizes={troll:[220,250],dracula:[190,220],cerberus:[250,215],dragon:[280,250],demonking:[210,238]},sz=sizes[this.kind]||[210,230];
+  const bob=this.kind==='dracula'?Math.sin(performance.now()/170)*7:Math.sin(performance.now()/240)*2;
+  ctx.save();ctx.globalAlpha=.28;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(this.x,this.y+44,sz[0]*.34,21,0,0,Math.PI*2);ctx.fill();
+  if(!drawSprite(sprites[key],this.x,this.y,sz[0],sz[1],flip,this.inv>0?.55:1,bob)){ctx.fillStyle='#803838';ctx.beginPath();ctx.arc(this.x,this.y-25,this.r*1.35,0,Math.PI*2);ctx.fill();}
+  if(this.attack>0){ctx.globalAlpha=.2;ctx.fillStyle='#ff5f45';ctx.beginPath();ctx.arc(this.x,this.y,205,0,Math.PI*2);ctx.fill()}ctx.restore();
+ }
+}
+let heroes=[],boss;
+function setupBattle(){
+ resetCombatInput();
+ const layouts={1:[[260,525]],2:[[250,455],[250,610]],3:[[270,420],[235,535],[280,650]]};
+ const pos=layouts[selectedTypes.length]||layouts[3];
+ heroes=selectedTypes.map((type,i)=>new Hero(type,pos[i][0],pos[i][1]));
+ heroes.forEach(validateHeroSkills);
+ if(awakenedMode&&awakeningSoloCarry){const h=heroes.find(x=>x.type===awakeningSoloCarry.type&&!x.dead);if(h){if(h.type==='magicblade')h.demonMode=8;else if(h.type==='ninja')h.cloneTime=15;else if(h.type==='runemage')h.runeOverload=15;else if(h.type==='highpriest')h.divineMode=12;else if(h.type==='qigong')h.qigongFocus=10;else if(h.type==='dragonknight')h.dragonBreath=10;else if(h.type==='dracula')h.dominationTime=10}awakeningSoloCarry=null}
+ boss=new Boss(bossDefs[bossIndex]);
+ heroIndex=heroes.findIndex(h=>h.type===selectedStartType);if(heroIndex<0)heroIndex=0;
+ shots.length=particles.length=walls.length=slashes.length=fistTrails.length=minions.length=lasers.length=holyFx.length=holyDots.length=runes.length=0;
+ updateUI();notice((awakenedMode?'覚醒・封印の間 ':'封印の間 ')+(bossIndex+1),awakenedMode?'#fff08a':'#ffd88b',1100)
+}
+function bossDefeated(){resetCombatInput();if(bossIndex===1&&!isDraculaUnlocked()&&selectedTypes.length>0&&selectedTypes.every(t=>t==='healer'||t==='highpriest')){saveDraculaUnlock();unlockDraculaChoice();notice('ドラキュラ 解放！ 聖なる力により魔王による呪いが解けた！','#f3a1bc',1800);document.getElementById('loadStatus').textContent='ドラキュラが解放されました！'}for(const h of heroes)h.chargeB=0;awakeningSoloCarry=null;if(awakenedMode){const h=heroes.find(x=>!x.dead);if(h&&((h.type==='magicblade'&&h.demonMode>0)||(h.type==='ninja'&&h.cloneTime>0)||(h.type==='runemage'&&h.runeOverload>0)||(h.type==='highpriest'&&h.divineMode>0)||(h.type==='qigong'&&h.qigongFocus>0)||(h.type==='dragonknight'&&h.dragonBreath>0)||(h.type==='dracula'&&h.dominationTime>0)))awakeningSoloCarry={type:h.type}}transition=2.2;notice('BOSS DEFEATED!','#fff08a',1500);for(const h of heroes)if(!h.dead)h.heal(h.maxHp*.24)}

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090d14">
 <title>ありきたりなボス5戦 | Just Another Boss Rush</title>
-<link rel="stylesheet" href="style.css?v=56">
+<link rel="stylesheet" href="style.css?v=60">
 </head>
 <body><div id="app"><div id="stage"><canvas id="game" width="1000" height="1000"></canvas><div id="hud">
 <div class="top"><span class="stageNo" id="stageNo">BOSS 1 / 5</span><span class="bossName" id="bossName">巨腕トロール・ガンバ</span></div><div class="bossBar"><div class="bossFill" id="bossFill"></div></div>
@@ -61,8 +61,13 @@
  </div>
  <div id="setupStatus" class="setupStatus"></div>
 </div>
-<div id="imageLoadStatus" class="imageLoadStatus">画像準備中 0/18</div><button id="play" type="button">ボス部屋へ入る</button><div id="loadStatus" class="small">ゲームは画像を待たずに開始できます（v56・模倣術師 第1段階）。</div><div class="small">Dボタンで操作キャラを切り替えられます。</div></div></div>
+<div id="imageLoadStatus" class="imageLoadStatus">画像準備中 0/18</div><button id="play" type="button">ボス部屋へ入る</button><div id="loadStatus" class="small">ゲームは画像を待たずに開始できます（v60・内部整理版）。</div><div class="small">Dボタンで操作キャラを切り替えられます。</div></div></div>
 </div></div></div>
 
-<script src="game.js?v=56" defer></script>
+<script src="js/core.js?v=60" defer></script>
+<script src="js/heroes.js?v=60" defer></script>
+<script src="js/bosses.js?v=60" defer></script>
+<script src="js/battle.js?v=60" defer></script>
+<script src="js/render.js?v=60" defer></script>
+<script src="js/ui.js?v=60" defer></script>
 </body></html>

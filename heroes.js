@@ -193,6 +193,7 @@ class Hero{
 }
 function tripleShot(h,type,speed,damage){const aim=boss&&!boss.dead?norm(boss.x-h.x,boss.y-h.y):h.facing;h.facing=aim;const base=Math.atan2(aim.y,aim.x);[-.11,.11].forEach(a=>{const ang=base+a;shots.push({team:'hero',type,x:h.x+Math.cos(ang)*32,y:h.y+Math.sin(ang)*32,vx:Math.cos(ang)*speed,vy:Math.sin(ang)*speed,r:type==='fire'?13:9,life:1.8,damage})})}
 function spawnHoming(h){const n=boss&&!boss.dead?norm(boss.x-h.x,boss.y-h.y):h.facing;h.facing=n;shots.push({team:'hero',type:'holy',owner:h,x:h.x+n.x*30,y:h.y+n.y*30,vx:n.x*330,vy:n.y*330,r:11,life:3.1,damage:22,homing:true})}
+const bushinDef={name:'武神',kind:'bushin',hp:4200,speed:218,pattern:'bushin'};
 const bossDefs=[
 {name:'巨腕トロール・ガンバ',kind:'troll',hp:1750,speed:102,pattern:'slam'},
 {name:'夜侯ドラキュラ',kind:'dracula',hp:2050,speed:142,pattern:'fire'},

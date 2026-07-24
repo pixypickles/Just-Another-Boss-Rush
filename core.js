@@ -1,6 +1,6 @@
 'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),W=1000,H=1000;
-const keys=new Set(),pressed=new Set(),released=new Set();let running=false,last=0,heroIndex=0,bossIndex=0,transition=0,shake=0,joy={x:0,y:0,id:null};let selectedTypes=['knight','mage','healer'],selectedStartType='knight',awakenedMode=false,bushinMode=false,partyDeaths=0,awakeningSoloCarry=null;
+const keys=new Set(),pressed=new Set(),released=new Set();let running=false,last=0,heroIndex=0,bossIndex=0,transition=0,shake=0,joy={x:0,y:0,id:null};let selectedTypes=['knight','mage','healer'],selectedStartType='knight',awakenedMode=false,bushinMode=false,partyDeaths=0,awakeningSoloCarry=null,dInputBuffer=0;
 let mimicBattleBuild=null;
 const AWAKEN_UNLOCK_KEY='jabrAwakeningUnlockedV1',MONK_UNLOCK_KEY='jabrMonkUnlockedV1',HIGHPRIEST_UNLOCK_KEY='jabrHighPriestUnlockedV2',MAGICBLADE_UNLOCK_KEY='jabrMagicbladeUnlockedV1',RUNEMAGE_UNLOCK_KEY='jabrRunemageUnlockedV1',QIGONG_UNLOCK_KEY='jabrQigongUnlockedV1',NINJA_UNLOCK_KEY='jabrNinjaUnlockedV1',DRAGONKNIGHT_UNLOCK_KEY='jabrDragonKnightUnlockedV1',DRACULA_UNLOCK_KEY='jabrPlayableDraculaUnlockedV1',MIMIC_UNLOCK_KEY='jabrMimicUnlockedV1',BUSHIN_UNLOCK_KEY='jabrBushinChallengeUnlockedV1',PLAYABLE_BUSHIN_UNLOCK_KEY='jabrPlayableBushinUnlockedV1';
 function isAwakeningUnlocked(){try{return localStorage.getItem(AWAKEN_UNLOCK_KEY)==='1'}catch(e){return false}}
@@ -30,7 +30,7 @@ function isPlayableBushinUnlocked(){try{return localStorage.getItem(PLAYABLE_BUS
 function savePlayableBushinUnlock(){try{localStorage.setItem(PLAYABLE_BUSHIN_UNLOCK_KEY,'1')}catch(e){}}
 
 function enemyDamage(n){return awakenedMode?n*1.25:n}
-function resetCombatInput(){keys.clear();pressed.clear();released.clear();joy.x=0;joy.y=0;joy.id=null;const stick=document.getElementById('stick');if(stick)stick.style.transform='translate(0,0)';document.querySelectorAll('.tb.active').forEach(b=>b.classList.remove('active'))}
+function resetCombatInput(){keys.clear();pressed.clear();released.clear();dInputBuffer=0;joy.x=0;joy.y=0;joy.id=null;const stick=document.getElementById('stick');if(stick)stick.style.transform='translate(0,0)';document.querySelectorAll('.tb.active').forEach(b=>b.classList.remove('active'))}
 const shots=[],particles=[],walls=[],slashes=[],fistTrails=[],minions=[],lasers=[],bloodBeams=[],holyFx=[],holyDots=[],runes=[];
 const AWAKEN_MINION_LIMIT=28,AWAKEN_SUMMON_MULTIPLIER=4;
 const spriteFiles={

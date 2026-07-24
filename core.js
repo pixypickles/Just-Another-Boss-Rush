@@ -93,6 +93,6 @@ function reportSkillError(hero,skill,err){
 }
 function validateHeroSkills(hero){
  const common=['a','b','c','soloSkill'];
- const extra={runemage:['placeRune'],dragonknight:['dragonThrust','dragonCharge','dragonSweep'],qigong:['fireQigongA','fireQigongC','deployQigongWall'],dracula:['bloodLaser','summonBats'],mimic:['mimicCopy','mimicSoloA','mimicSoloB']}[hero.type]||[];
+ const extra={runemage:['placeRune'],dragonknight:['dragonThrust','dragonCharge','dragonSweep'],qigong:['fireQigongA','fireQigongC','deployQigongWall'],dracula:['bloodLaser','summonBats'],mimic:['mimicCopy','mimicSoloA','mimicSoloB','beastDoubleDash','beastDashSegment']}[hero.type]||[];
  for(const name of [...common,...extra])if(typeof hero[name]!=='function')reportSkillError(hero,name,new Error(`${name} is not a function`));
 }

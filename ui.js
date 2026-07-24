@@ -16,6 +16,7 @@ function unlockRunemageChoice(){unlockChoice('runemage','ルーンメイジ')}
 function unlockNinjaChoice(){unlockChoice('ninja','忍者')}
 function unlockQigongChoice(){unlockChoice('qigong','気功師')}
 function unlockMimicChoice(){unlockChoice('mimic','模倣術師')}
+function unlockBushinChoice(){unlockChoice('bushin','武神')}
 if(isBushinUnlocked())addBushinOptions();
 if(isAwakeningUnlocked()){addAwakeningOption();document.getElementById('loadStatus').textContent='覚醒無双モード解放済み。敵強化・CTなし・手下最大28体。'}
 if(isMonkUnlocked())unlockMonkChoice();
@@ -27,6 +28,7 @@ if(isRunemageUnlocked())unlockRunemageChoice();
 if(isNinjaUnlocked())unlockNinjaChoice();
 if(isQigongUnlocked())unlockQigongChoice();
 if(isMimicUnlocked())unlockMimicChoice();
+if(isPlayableBushinUnlocked())unlockBushinChoice();
 function syncPartySetup(){
  const awakening=modeSelect.value==='awakening',bushin=modeSelect.value.startsWith('bushin'),need=modeCount();
  let chosen=partyChoices.filter(b=>b.classList.contains('selected'));
@@ -41,7 +43,7 @@ function syncPartySetup(){
 }
 modeSelect.addEventListener('change',()=>{const awakening=modeSelect.value==='awakening',bushin=modeSelect.value.startsWith('bushin'),need=modeCount();partyChoices.forEach((b,i)=>b.classList.toggle('selected',i<need));selectedStartType=partyChoices.find(b=>b.classList.contains('selected'))?.dataset.hero||'knight';syncPartySetup()});
 partyChoices.forEach(b=>b.addEventListener('click',()=>{
- if(b.classList.contains('unlockLocked')){document.getElementById('setupStatus').textContent=({highpriest:'ハイプリーストはヒーラー単独クリアで解放されます',magicblade:'魔剣士はナイト単独クリアで解放されます',runemage:'ルーンメイジは魔法使い単独クリアで解放されます',qigong:'気功師はモンク単独クリアで解放されます',ninja:'忍者は覚醒無双以外を1人または2人でクリアすると解放されます',dragonknight:'竜騎士はどの編成でも1回クリアすると解放されます',dracula:'ドラキュラはステージ2を回復職1人または2人だけで撃破すると解放されます',mimic:'模倣術師は竜騎士単独クリアで解放されます',monk:'モンクはどの編成でも1回クリアすると解放されます'}[b.dataset.hero]||'特別な条件で解放されます');return}
+ if(b.classList.contains('unlockLocked')){document.getElementById('setupStatus').textContent=({highpriest:'ハイプリーストはヒーラー単独クリアで解放されます',magicblade:'魔剣士はナイト単独クリアで解放されます',runemage:'ルーンメイジは魔法使い単独クリアで解放されます',qigong:'気功師はモンク単独クリアで解放されます',ninja:'忍者は覚醒無双以外を1人または2人でクリアすると解放されます',dragonknight:'竜騎士はどの編成でも1回クリアすると解放されます',dracula:'ドラキュラはステージ2を回復職1人または2人だけで撃破すると解放されます',mimic:'模倣術師は竜騎士単独クリアで解放されます',bushin:'武神は武神挑戦モード撃破で解放されます',monk:'モンクはどの編成でも1回クリアすると解放されます'}[b.dataset.hero]||'特別な条件で解放されます');return}
  const awakening=modeSelect.value==='awakening',need=modeCount(),selected=b.classList.contains('selected');
  if(!selected){
   const chosen=partyChoices.filter(x=>x.classList.contains('selected'));

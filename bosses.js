@@ -97,11 +97,11 @@ class Boss{
  }
  slam(dmg){this.attack=.75;setTimeout(()=>{if(!running||this.dead)return;for(const h of heroes)if(!h.dead&&Math.hypot(h.x-this.x,h.y-this.y)<205)h.hurt(this.damage(dmg));burst(this.x,this.y,'#ffd08a',42,470);shake=22},430)}
  drawBushin(){
-  const target=heroes.filter(h=>!h.dead).sort((a,b)=>Math.hypot(a.x-this.x,a.y-this.y)-Math.hypot(b.x-this.x,b.y-this.y))[0];const flip=this.bushinKick?this.bushinKickDirX<0:(target?target.x<this.x:false);
+  const target=heroes.filter(h=>!h.dead).sort((a,b)=>Math.hypot(a.x-this.x,a.y-this.y)-Math.hypot(b.x-this.x,b.y-this.y))[0];/* 元画像は左向き。右へ進む／右を見る場合だけ反転する */const flip=this.bushinKick?this.bushinKickDirX>0:(target?target.x>this.x:false);
   if(this.bushinLine){ctx.save();const pulse=.35+.25*Math.sin(performance.now()/70);ctx.globalAlpha=pulse;ctx.strokeStyle='#ff4e5e';ctx.shadowBlur=10;ctx.shadowColor='#ff233b';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(this.bushinLine.x1,this.bushinLine.y1);ctx.lineTo(this.bushinLine.x2,this.bushinLine.y2);ctx.stroke();ctx.restore()}
-  const y=this.y-this.bushinAir;ctx.save();ctx.globalAlpha=.3;ctx.fillStyle='#000';ctx.beginPath();const shadowScale=clamp(1-this.bushinAir/220,.25,1);ctx.ellipse(this.x,this.y+34,62*shadowScale,16*shadowScale,0,0,Math.PI*2);ctx.fill();ctx.restore();
-  if(this.bushinState==='counterStance'){ctx.save();const pulse=.28+.14*Math.sin(performance.now()/85);ctx.globalAlpha=.68;ctx.strokeStyle='#8fd8ff';ctx.shadowBlur=24;ctx.shadowColor='#55bfff';ctx.lineWidth=7;ctx.beginPath();ctx.arc(this.x,y-12,66+pulse*10,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=.22;ctx.fillStyle='#68c7ff';ctx.beginPath();ctx.arc(this.x,y-12,62,0,Math.PI*2);ctx.fill();ctx.restore()}
-  const vanish=this.bushinState==='counterVanish';const key=this.bushinKick?'boss_bushin_kick':'boss_bushin';const size=this.bushinKick?[178,150]:[145,178];if(!vanish&&!drawSprite(sprites[key],this.x,y,size[0],size[1],flip,this.inv>0?.55:1,0)){ctx.fillStyle='#34251d';ctx.beginPath();ctx.arc(this.x,y-20,42,0,Math.PI*2);ctx.fill()}
+  const y=this.y-this.bushinAir;ctx.save();ctx.globalAlpha=.3;ctx.fillStyle='#000';ctx.beginPath();const shadowScale=clamp(1-this.bushinAir/220,.25,1);ctx.ellipse(this.x,this.y+27,39*shadowScale,11*shadowScale,0,0,Math.PI*2);ctx.fill();ctx.restore();
+  if(this.bushinState==='counterStance'){ctx.save();const pulse=.28+.14*Math.sin(performance.now()/85);ctx.globalAlpha=.68;ctx.strokeStyle='#8fd8ff';ctx.shadowBlur=24;ctx.shadowColor='#55bfff';ctx.lineWidth=7;ctx.beginPath();ctx.arc(this.x,y-9,50+pulse*8,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=.22;ctx.fillStyle='#68c7ff';ctx.beginPath();ctx.arc(this.x,y-9,47,0,Math.PI*2);ctx.fill();ctx.restore()}
+  const vanish=this.bushinState==='counterVanish';const key=this.bushinKick?'boss_bushin_kick':'boss_bushin';const size=this.bushinKick?[138,112]:[112,126];if(!vanish&&!drawSprite(sprites[key],this.x,y,size[0],size[1],flip,this.inv>0?.55:1,0)){ctx.fillStyle='#34251d';ctx.beginPath();ctx.arc(this.x,y-20,42,0,Math.PI*2);ctx.fill()}
  }
  draw(){
   if(this.kind==='bushin'){this.drawBushin();return}

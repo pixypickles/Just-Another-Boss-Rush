@@ -300,3 +300,9 @@
 #d.soloReady.active{transform:translateY(5px) scale(.94)}
 
 .imageLoadStatus{margin:18px auto 16px;padding:11px 18px;max-width:390px;border:2px solid #75d8ff;border-radius:999px;background:#10283b;color:#dff7ff;font-size:17px;font-weight:900;letter-spacing:.04em;box-shadow:0 0 22px #48c8ff44}
+
+/* v63 mimic build screen */
+.mimicSetup{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:12px;background:#050812ee}
+.mimicSetup[hidden]{display:none!important}.mimicSetupCard{width:min(760px,96vw);max-height:92dvh;overflow:auto;padding:20px;border-radius:20px;background:#151d2c;border:1px solid #ffffff35;box-shadow:0 25px 80px #000c;text-align:left}
+.mimicSetupCard h2{margin:0;color:#dfbdff;text-align:center}.mimicSetupCard p{font-size:12px;margin:7px 0 14px;text-align:center}.mimicBuildRows{display:grid;gap:9px}.mimicBossRow{display:grid;grid-template-columns:150px 1fr 1fr;gap:8px;align-items:center;padding:9px;border-radius:12px;background:#0c1320;border:1px solid #ffffff1f}.mimicBossRow b{color:#ffd88b}.mimicSkillSelect{width:100%;min-width:0;padding:9px 7px;border-radius:9px;background:#111b2c;color:#fff;border:1px solid #ffffff2c;font:inherit;font-size:12px}.mimicSlotLabel{display:block;color:#a9dfff;font-size:10px;margin-bottom:3px}.mimicSetupActions{display:flex;justify-content:center;gap:12px;margin-top:15px}.mimicSetupActions button{padding:11px 20px;border:0;border-radius:999px;font-weight:900}.mimicSetupActions #mimicSaveStart{background:linear-gradient(#fff1a2,#e99c28);color:#241500}.mimicSetupActions #mimicCancel{background:#2a3447;color:#fff}
+@media(max-width:620px){.mimicBossRow{grid-template-columns:1fr 1fr}.mimicBossRow>b{grid-column:1/-1}.mimicSetupCard{padding:14px}.mimicSkillSelect{font-size:11px;padding:8px 5px}}

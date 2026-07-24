@@ -1,3 +1,30 @@
+const mimicSkillCatalog={
+ knight_a:{id:'knight_a',type:'knight',slot:'a',name:'剣の大攻撃'},
+ knight_b:{id:'knight_b',type:'knight',slot:'b',name:'サークルシールド'},
+ mage_a:{id:'mage_a',type:'mage',slot:'a',name:'ファイアボール'},
+ mage_b:{id:'mage_b',type:'mage',slot:'b',name:'フリーズ'},
+ mage_c:{id:'mage_c',type:'mage',slot:'c',name:'ミニトルネード'},
+ healer_a:{id:'healer_a',type:'healer',slot:'a',name:'ライトボール'},
+ healer_c:{id:'healer_c',type:'healer',slot:'c',name:'反射壁'},
+ monk_a:{id:'monk_a',type:'monk',slot:'a',name:'連続パンチ'},
+ monk_b:{id:'monk_b',type:'monk',slot:'b',name:'気功弾'},
+ magicblade_a:{id:'magicblade_a',type:'magicblade',slot:'a',name:'魔力斬り'},
+ magicblade_b:{id:'magicblade_b',type:'magicblade',slot:'b',name:'三日月の魔剣波'},
+ magicblade_c:{id:'magicblade_c',type:'magicblade',slot:'c',name:'回転斬り'},
+ ninja_a:{id:'ninja_a',type:'ninja',slot:'a',name:'追尾手裏剣3連'},
+ ninja_b:{id:'ninja_b',type:'ninja',slot:'b',name:'瞬身斬'},
+ ninja_c:{id:'ninja_c',type:'ninja',slot:'c',name:'煙玉・瞬移'},
+ qigong_a:{id:'qigong_a',type:'qigong',slot:'a',name:'最大拡散気功弾',special:'qigongA'},
+ qigong_b:{id:'qigong_b',type:'qigong',slot:'b',name:'気功壁',special:'qigongWall'},
+ dragonknight_a:{id:'dragonknight_a',type:'dragonknight',slot:'a',name:'ドラゴンスラスト'},
+ dragonknight_b:{id:'dragonknight_b',type:'dragonknight',slot:'b',name:'ドラゴンチャージ（短押し）',special:'dragonCharge'},
+ dragonknight_c:{id:'dragonknight_c',type:'dragonknight',slot:'c',name:'ドラゴンスイープ'},
+ dracula_b:{id:'dracula_b',type:'dracula',slot:'b',name:'コウモリ召喚'}
+};
+function mimicCandidatesForTypes(types){
+ const set=new Set(types.filter(t=>t!=='mimic'));
+ return Object.values(mimicSkillCatalog).filter(skill=>set.has(skill.type));
+}
 class Hero{
  constructor(type,x,y){const i=heroInfo[type];Object.assign(this,{type,x,y,vx:0,vy:0,r:24,hp:i.hp,maxHp:i.hp,cdA:0,cdB:0,cdC:0,inv:0,guard:0,tornado:0,drainFx:0,dead:false,facing:{x:1,y:0},attackAnim:0,attackSide:1,soloCd:0,spiritFx:0,healFx:0,powerUp:0,demonMode:0,cloneTime:0,smokeTime:0,hidden:false,divineMode:0,runeOverload:0,regenTime:0,regenRate:0,chargeA:0,chargeB:0,chargeC:0,qigongFocus:0,qigongALock:0,qigongBLock:0,dragonBreath:0,breathTick:0,dragonChargeFx:0,batForm:0,bloodLaserTime:0,dominationTime:0,mimicPower:0,beastDashToken:0})}
  safeUse(skill,...args){const fn=this[skill];if(typeof fn!=='function'){reportSkillError(this,skill,new Error(`${skill} is not a function`));return false}try{fn.apply(this,args);return true}catch(err){reportSkillError(this,skill,err);return false}}
@@ -42,9 +69,8 @@ class Hero{
   burst(rune.x,rune.y,kind==='fire'?'#ff8b57':kind==='ice'?'#8edbff':'#ffe56f',10,100)
  }
  mimicAllies(){return heroes.filter(h=>h!==this&&h.type!=='mimic')}
- mimicSource(button){const allies=this.mimicAllies();if(!allies.length)return null;return button==='a'||allies.length===1?allies[0]:allies[1]}
  mimicMult(){return this.mimicPower>0?1.2:1}
- mimicFallback(button){const aim=boss&&!boss.dead?norm(boss.x-this.x,boss.y-this.y):this.facing;this.facing=aim;if(button==='a'){this.cdA=.75;shots.push({team:'hero',type:'mimic',owner:this,x:this.x+aim.x*34,y:this.y+aim.y*34,vx:aim.x*620,vy:aim.y*620,r:13,life:1.8,damage:46*this.mimicMult(),bulletCut:true});notice('コピー不可：模倣弾！','#cfa8ff',480)}else{this.cdB=1.25;const base=Math.atan2(aim.y,aim.x);for(let k=-2;k<=2;k++){const a=base+k*.14;shots.push({team:'hero',type:'mimic',owner:this,x:this.x+Math.cos(a)*36,y:this.y+Math.sin(a)*36,vx:Math.cos(a)*560,vy:Math.sin(a)*560,r:11,life:2,damage:28*this.mimicMult()})}notice('コピー不可：模倣拡散弾！','#cfa8ff',480)}}
+ mimicFallback(button){const aim=boss&&!boss.dead?norm(boss.x-this.x,boss.y-this.y):this.facing;this.facing=aim;if(button==='a'){this.cdA=.75;shots.push({team:'hero',type:'mimic',owner:this,x:this.x+aim.x*34,y:this.y+aim.y*34,vx:aim.x*620,vy:aim.y*620,r:13,life:1.8,damage:46*this.mimicMult(),bulletCut:true});notice('模倣弾！','#cfa8ff',480)}else{this.cdB=1.25;const base=Math.atan2(aim.y,aim.x);for(let k=-2;k<=2;k++){const a=base+k*.14;shots.push({team:'hero',type:'mimic',owner:this,x:this.x+Math.cos(a)*36,y:this.y+Math.sin(a)*36,vx:Math.cos(a)*560,vy:Math.sin(a)*560,r:11,life:2,damage:28*this.mimicMult()})}notice('模倣拡散弾！','#cfa8ff',480)}}
  mimicSoloA(){if(this.cdA>0)return;this.cdA=1.05;const aim=boss&&!boss.dead?norm(boss.x-this.x,boss.y-this.y):this.facing,hx=this.x+aim.x*82,hy=this.y+aim.y*82,r=94,m=this.mimicMult();this.facing=aim;slashes.push({x:hx,y:hy,side:aim.x<0?-1:1,life:.34,max:.34,spin:true,wide:true});for(const e of minions)if(Math.hypot(e.x-hx,e.y-hy)<e.r+r){e.hp-=112*m;const n=norm(e.x-this.x,e.y-this.y);e.vx+=n.x*260;e.vy+=n.y*260}if(!boss.dead&&Math.hypot(boss.x-hx,boss.y-hy)<boss.r+r){boss.hurt(98*m);boss.vx+=aim.x*190;boss.vy+=aim.y*190}for(let i=shots.length-1;i>=0;i--){const q=shots[i];if(q.team==='boss'&&Math.hypot(q.x-hx,q.y-hy)<r+q.r)shots.splice(i,1)}burst(hx,hy,'#d59a62',34,380);shake=12;notice('巨棍撃！','#ffd0a0',520)}
  mimicSoloB(){if(this.cdB>0)return;this.cdB=1.25;const aim=boss&&!boss.dead?norm(boss.x-this.x,boss.y-this.y):this.facing,base=Math.atan2(aim.y,aim.x),m=this.mimicMult();this.facing=aim;for(let k=-3;k<=3;k++){const a=base+k*.16;shots.push({team:'hero',type:'mimicDragon',owner:this,x:this.x+Math.cos(a)*42,y:this.y+Math.sin(a)*42,vx:Math.cos(a)*590,vy:Math.sin(a)*590,r:12,life:2.2,damage:34*m,bulletCut:true})}burst(this.x+aim.x*40,this.y+aim.y*40,'#ffad72',28,310);notice('竜散弾！','#ffc291',520)}
  beastDashSegment(dir,dist,damage,token){
@@ -63,7 +89,32 @@ class Hero{
   burst(this.x,this.y,'#8b4ac9',20,245);this.beastDashSegment(first,300,74,token);
   setTimeout(()=>{if(this.dead||this.beastDashToken!==token||!boss||boss.dead)return;const second=norm(boss.x-this.x,boss.y-this.y);this.inv=Math.max(this.inv,.48);this.beastDashSegment(second,315,92,token);notice('獣化・双牙突進！','#d9b5ff',650)},115)
  }
- mimicCopy(button){const src=this.mimicSource(button);if(!src){if(button==='a')this.mimicSoloA();else this.mimicSoloB();return}const allowedA=new Set(['knight','mage','monk','magicblade','ninja','qigong','dragonknight']),allowedB=new Set(['mage','monk','magicblade','ninja','dragonknight','dracula']);if(!(button==='a'?allowedA:allowedB).has(src.type)){this.mimicFallback(button);return}const ownType=this.type;try{if(button==='a'&&src.type==='qigong'){this.fireQigongA(3.1);this.cdA=Math.max(this.cdA,.78)}else{this.type=src.type;if(button==='b'&&src.type==='dragonknight')this.dragonCharge(0);else this[button]()}notice(`${heroInfo[src.type].name}の${button.toUpperCase()}を模倣！`,'#d8bcff',520)}finally{this.type=ownType}}
+ deployMimicQigongWall(button){
+  const prop=button==='a'?'cdA':'cdB';if(this[prop]>0)return;const life=4;this[prop]=8;
+  for(let i=walls.length-1;i>=0;i--)if(walls[i].type==='qigong'&&walls[i].owner===this&&walls[i].mimicSlot===button)walls.splice(i,1);
+  walls.push({type:'qigong',owner:this,mimicSlot:button,x:this.x,y:this.y,r:142,life,maxLife:life,hits:30,maxHits:30});
+  burst(this.x,this.y,'#8defff',34,290);notice(`気功壁（${button.toUpperCase()}）！`,'#baf5ff',600)
+ }
+ useMimicSkill(skill,button){
+  const targetProp=button==='a'?'cdA':'cdB';if(this[targetProp]>0||!skill)return;
+  if(skill.special==='qigongWall'){this.deployMimicQigongWall(button);return}
+  const savedType=this.type,savedA=this.cdA,savedB=this.cdB,savedC=this.cdC;
+  try{
+   this.type=skill.type;this.cdA=0;this.cdB=0;this.cdC=0;
+   if(skill.special==='qigongA'){this.fireQigongA(4);this.cdA=Math.max(this.cdA,.78)}
+   else if(skill.special==='dragonCharge')this.dragonCharge(0);
+   else this[skill.slot]();
+   const generated=skill.slot==='a'?this.cdA:skill.slot==='b'?this.cdB:this.cdC;
+   this.cdA=savedA;this.cdB=savedB;this.cdC=savedC;this[targetProp]=Math.max(.12,generated||.8);
+  }finally{this.type=savedType}
+ }
+ mimicCopy(button){
+  const allies=this.mimicAllies();if(!allies.length){if(button==='a')this.mimicSoloA();else this.mimicSoloB();return}
+  const key=bossDefs[bossIndex]?.kind||'troll',skillId=mimicBattleBuild?.[key]?.[button];
+  const skill=mimicSkillCatalog[skillId],available=new Set(allies.map(h=>h.type));
+  if(!skill||!available.has(skill.type)){this.mimicFallback(button);return}
+  this.useMimicSkill(skill,button)
+ }
  a(){if(this.cdA>0)return;if(this.type==='dracula'){return}else if(this.type==='knight'){this.cdA=.72;this.attackAnim=.32;const f={x:boss.x<this.x?-1:1,y:0};this.facing=f;this.attackSide=f.x<0?-1:1;const hx=this.x+f.x*78,hy=this.y;slashes.push({x:this.x,y:this.y,side:f.x<0?-1:1,life:.24,max:.24});for(const m of minions)if(Math.hypot(m.x-hx,m.y-hy)<m.r+72)m.hp-=110;if(Math.hypot(boss.x-hx,boss.y-hy)<boss.r+72){boss.hurt(88);boss.vx+=f.x*170;boss.vy+=f.y*170;shake=14;burst(boss.x,boss.y,'#f4f8ff',28,380)}}else if(this.type==='dragonknight'){this.cdA=.78;this.dragonThrust()}else if(this.type==='mage'){this.cdA=.72;tripleShot(this,'fire',560,34);notice('ファイア！','#ffad62',450)}else if(this.type==='monk'){this.cdA=.58;this.attackAnim=.3;const f=boss&&!boss.dead?norm(boss.x-this.x,boss.y-this.y):this.facing;this.facing=f;const punchY=this.y-28,hx=this.x+f.x*62,hy=punchY+f.y*62;let hit=false;for(const m of minions)if(Math.hypot(m.x-hx,m.y-hy)<m.r+58){m.hp-=84*(this.powerUp>0?1.5:1);const n=norm(m.x-this.x,m.y-this.y);m.vx+=n.x*170;m.vy+=n.y*170;hit=true}if(!boss.dead&&Math.hypot(boss.x-hx,boss.y-hy)<boss.r+58){boss.hurt(72*(this.powerUp>0?1.5:1));boss.vx+=f.x*120;boss.vy+=f.y*120;hit=true}for(let k=0;k<4;k++)setTimeout(()=>{const d=43+k*15;fistAfterimage(this.x+f.x*d-f.y*(k%2?7:-7),punchY+f.y*d+f.x*(k%2?7:-7),f.x,f.y,.78+k*.06,false);burst(this.x+f.x*d,punchY+f.y*d,'#ffd47d',5,115)},k*42);if(hit)shake=8;notice('連続パンチ！','#ffe09b',400)}else if(this.type==='magicblade'){const demon=this.demonMode>0,range=demon?112:76,width=demon?104:72,mult=demon?1.55:1;this.cdA=demon?.38:.68;this.attackAnim=.34;const f=boss&&!boss.dead?norm(boss.x-this.x,boss.y-this.y):this.facing;this.facing=f;this.attackSide=f.x<0?-1:1;const hx=this.x+f.x*range,hy=this.y+f.y*range;slashes.push({x:this.x,y:this.y,side:this.attackSide,life:.3,max:.3,magic:true,wide:demon});for(let i=shots.length-1;i>=0;i--){const q=shots[i];if(q.team==='boss'&&Math.hypot(q.x-hx,q.y-hy)<width+q.r){burst(q.x,q.y,q.type==='dragonfire'?'#ff7a38':'#c084fc',8,150);shots.splice(i,1)}}let drained=0;for(const m of minions)if(Math.hypot(m.x-hx,m.y-hy)<m.r+width){const dmg=Math.min(m.hp,92*mult);m.hp-=92*mult;drained+=dmg;const n=norm(m.x-this.x,m.y-this.y);m.vx+=n.x*230;m.vy+=n.y*230}if(!boss.dead&&Math.hypot(boss.x-hx,boss.y-hy)<boss.r+width){const dmg=80*mult;boss.hurt(dmg);drained+=dmg;boss.vx+=f.x*165;boss.vy+=f.y*165;shake=13}this.heal(Math.min(demon?42:28,drained*.18));burst(hx,hy,'#bd75ff',demon?28:18,demon?360:260);notice('魔力斬り！ 弾消去＋吸収！','#d9a6ff',500)}else if(this.type==='ninja'){this.cdA=.82;const aim=boss&&!boss.dead?norm(boss.x-this.x,boss.y-this.y):this.facing;this.facing=aim;const origins=[[this.x,this.y]];if(this.cloneTime>0){origins.push([this.x+(-aim.y)*58,this.y+aim.x*58]);origins.push([this.x-(-aim.y)*58,this.y-aim.x*58]);}origins.forEach((o,ci)=>{for(let k=0;k<3;k++)setTimeout(()=>{if(this.dead)return;const target=!boss.dead?boss:minions[0];const a=target?norm(target.x-o[0],target.y-o[1]):aim;shots.push({team:'hero',type:'shuriken',owner:this,x:o[0]+a.x*30,y:o[1]+a.y*30,vx:a.x*700,vy:a.y*700,r:10,life:1.8,damage:30,homing:true,pierce:0});burst(o[0]+a.x*30,o[1]+a.y*30,'#8ab4ff',6,120)},k*105)});notice(this.cloneTime>0?'分身・手裏剣九連！':'手裏剣三連！','#9cc7ff',520)}else if(this.type==='runemage'){this.cdA=this.runeOverload>0?.48:1.25;this.placeRune('fire',3);notice('炎ルーン設置！ 最大3個','#ff9a63',520)}else if(this.type==='mimic'){this.mimicCopy('a')}else if(this.type==='highpriest'){this.cdA=2.2;const range=1200,width=90;holyFx.push({x:this.x,y:this.y,type:'cross',r:range,life:.72,max:.72,wide:true});for(const h of heroes)if(!h.dead&&(Math.abs(h.x-this.x)<width&&Math.abs(h.y-this.y)<range||Math.abs(h.y-this.y)<width&&Math.abs(h.x-this.x)<range))h.heal(105);if(this.divineMode>0){if(!boss.dead&&(Math.abs(boss.x-this.x)<width+boss.r&&Math.abs(boss.y-this.y)<range+boss.r||Math.abs(boss.y-this.y)<width+boss.r&&Math.abs(boss.x-this.x)<range+boss.r))boss.hurt(92);for(const m of minions)if(Math.abs(m.x-this.x)<width+m.r&&Math.abs(m.y-this.y)<range+m.r||Math.abs(m.y-this.y)<width+m.r&&Math.abs(m.x-this.x)<range+m.r)m.hp-=105}burst(this.x,this.y,'#fff1a8',30,330);notice(this.divineMode>0?'ホーリークロス！ 回復＋聖光ダメージ！':'ホーリークロス！ 中回復！','#fff5bd',650)}else{
  const activeLights=shots.filter(s=>s.team==='hero'&&s.type==='holy'&&s.owner===this).length;
  if(activeLights>=2)return;

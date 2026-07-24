@@ -53,17 +53,59 @@ partyChoices.forEach(b=>b.addEventListener('click',()=>{
 }));
 startChoices.forEach(r=>r.addEventListener('change',()=>{if(r.checked)selectedStartType=r.value}));
 syncPartySetup();
+const mimicSetup=document.getElementById('mimicSetup'),mimicBuildRows=document.getElementById('mimicBuildRows'),mimicSaveStart=document.getElementById('mimicSaveStart'),mimicCancel=document.getElementById('mimicCancel');
+const mimicBossList=[
+ {key:'troll',name:'巨腕トロール・ガンバ'},
+ {key:'dracula',name:'夜侯ドラキュラ'},
+ {key:'cerberus',name:'冥府の番犬ケルベロス'},
+ {key:'dragon',name:'深紅竜ヴォルガノス'},
+ {key:'demonking',name:'終焉の魔王アビス'}
+];
+let pendingMimicLaunch=null;
+function mimicPartySignature(){return selectedTypes.filter(t=>t!=='mimic').sort().join('_')||'solo'}
+function mimicStorageKey(){return 'jabr_mimic_build_v63_'+mimicPartySignature()}
+function readSavedMimicBuild(){try{return JSON.parse(localStorage.getItem(mimicStorageKey())||'null')}catch{return null}}
+function optionLabel(skill){return `${skill.name}（${heroInfo[skill.type]?.name||skill.type}）`}
+function showMimicBuildScreen(onStart){
+ const candidates=mimicCandidatesForTypes(selectedTypes),saved=readSavedMimicBuild()||{};
+ if(!candidates.length){mimicBattleBuild=null;onStart();return}
+ mimicBuildRows.innerHTML='';
+ for(const entry of mimicBossList){
+  const row=document.createElement('div');row.className='mimicBossRow';
+  const title=document.createElement('b');title.textContent='VS '+entry.name;row.appendChild(title);
+  for(const button of ['a','b']){
+   const wrap=document.createElement('label'),caption=document.createElement('span'),select=document.createElement('select');
+   caption.className='mimicSlotLabel';caption.textContent=button.toUpperCase()+'ボタン';select.className='mimicSkillSelect';select.dataset.boss=entry.key;select.dataset.button=button;
+   for(const skill of candidates){const opt=document.createElement('option');opt.value=skill.id;opt.textContent=optionLabel(skill);select.appendChild(opt)}
+   const wanted=saved?.[entry.key]?.[button];select.value=candidates.some(x=>x.id===wanted)?wanted:candidates[(button==='b'&&candidates.length>1)?1:0].id;
+   wrap.append(caption,select);row.appendChild(wrap)
+  }
+  mimicBuildRows.appendChild(row)
+ }
+ pendingMimicLaunch=onStart;mimicSetup.hidden=false;
+}
+function collectMimicBuild(){
+ const build={};for(const entry of mimicBossList)build[entry.key]={};
+ mimicBuildRows.querySelectorAll('.mimicSkillSelect').forEach(sel=>build[sel.dataset.boss][sel.dataset.button]=sel.value);
+ return build
+}
+mimicCancel.addEventListener('click',()=>{mimicSetup.hidden=true;pendingMimicLaunch=null;startingGame=false;playButton.disabled=false;playButton.textContent='ボス部屋へ入る';document.getElementById('loadStatus').textContent='模倣術設定をキャンセルしました。'});
+mimicSaveStart.addEventListener('click',()=>{const build=collectMimicBuild();mimicBattleBuild=build;try{localStorage.setItem(mimicStorageKey(),JSON.stringify(build))}catch{}mimicSetup.hidden=true;const launch=pendingMimicLaunch;pendingMimicLaunch=null;if(launch)launch()});
 let startingGame=false,lastStartRequest=0;
+function launchBattle(){
+ partyDeaths=0;awakeningSoloCarry=null;awakenedMode=modeSelect.value==='awakening';
+ const launch=()=>{try{bossIndex=0;transition=0;setupBattle();running=true;last=performance.now();ui.notice.style.opacity=0;ui.start.style.display='none';playButton.disabled=false;playButton.textContent='ボス部屋へ入る';startingGame=false}catch(err){running=false;ui.start.style.display='grid';playButton.disabled=false;playButton.textContent='ボス部屋へ入る';startingGame=false;const status=document.getElementById('loadStatus');status.textContent='開始エラー: '+(err&&err.message?err.message:String(err));console.error(err)}};
+ requestAnimationFrame(launch);setTimeout(()=>{if(startingGame)launch()},180)
+}
 function startGame(e){
  if(e){e.preventDefault?.();e.stopPropagation?.()}
  const now=performance.now();if(startingGame||now-lastStartRequest<250)return;lastStartRequest=now;
  syncPartySetup();
  const awakening=modeSelect.value==='awakening',need=awakening?1:Number(modeSelect.value),chosen=partyChoices.filter(b=>b.classList.contains('selected'));
  if(chosen.length!==need){document.getElementById('setupStatus').textContent=`キャラクターを${need}人選んでください`;return}
- startingGame=true;playButton.textContent='開始しています…';document.getElementById('loadStatus').textContent='ボス部屋を準備しています…';
- partyDeaths=0;awakeningSoloCarry=null;awakenedMode=awakening;
- const launch=()=>{try{bossIndex=0;transition=0;setupBattle();running=true;last=performance.now();ui.notice.style.opacity=0;ui.start.style.display='none';playButton.disabled=false;playButton.textContent='ボス部屋へ入る';startingGame=false}catch(err){running=false;ui.start.style.display='grid';playButton.disabled=false;playButton.textContent='ボス部屋へ入る';startingGame=false;const status=document.getElementById('loadStatus');status.textContent='開始エラー: '+(err&&err.message?err.message:String(err));console.error(err)}};
- requestAnimationFrame(launch);setTimeout(()=>{if(startingGame)launch()},180);
+ startingGame=true;playButton.disabled=true;playButton.textContent='開始しています…';document.getElementById('loadStatus').textContent='ボス部屋を準備しています…';
+ if(selectedStartType==='mimic'&&selectedTypes.length>1){showMimicBuildScreen(launchBattle);return}
+ mimicBattleBuild=null;launchBattle()
 }
 window.__bossRushStart=startGame;
 ['click','pointerup','touchend'].forEach(type=>playButton.addEventListener(type,startGame,{passive:false}));

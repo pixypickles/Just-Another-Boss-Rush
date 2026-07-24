@@ -19,7 +19,9 @@ const mimicSkillCatalog={
  dragonknight_a:{id:'dragonknight_a',type:'dragonknight',slot:'a',name:'ドラゴンスラスト'},
  dragonknight_b:{id:'dragonknight_b',type:'dragonknight',slot:'b',name:'ドラゴンチャージ（短押し）',special:'dragonCharge'},
  dragonknight_c:{id:'dragonknight_c',type:'dragonknight',slot:'c',name:'ドラゴンスイープ'},
- dracula_b:{id:'dracula_b',type:'dracula',slot:'b',name:'コウモリ召喚'}
+ dracula_b:{id:'dracula_b',type:'dracula',slot:'b',name:'コウモリ召喚'},
+ bushin_a:{id:'bushin_a',type:'bushin',slot:'a',name:'神速拳'},
+ bushin_b:{id:'bushin_b',type:'bushin',slot:'b',name:'天翔急降下蹴り'}
 };
 function mimicCandidatesForTypes(types){
  const set=new Set(types.filter(t=>t!=='mimic'));

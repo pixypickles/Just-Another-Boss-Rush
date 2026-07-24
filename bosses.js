@@ -26,7 +26,7 @@ class Boss{
   }
   this.vx*=.82;this.vy*=.82;
   if(this.bushinState==='punchWindup'&&this.bushinTimer<=0){
-   this.bushinState='punchRecover';this.bushinTimer=.38;const aim=norm(target.x-this.x,target.y-this.y);fistAfterimage(this.x+aim.x*48,this.y+aim.y*30,aim.x,aim.y,1.35,true);
+   this.bushinState='punchRecover';this.bushinTimer=.38;const aim=norm(target.x-this.x,target.y-this.y);fistAfterimage(this.x+aim.x*48,this.y-42+aim.y*48,aim.x,aim.y,1.35,true,true);
    if(Math.hypot(target.x-this.x,target.y-this.y)<148){target.hurt(this.damage(72),aim.x*430,aim.y*430);shake=12}burst(this.x+aim.x*60,this.y+aim.y*35,'#fff1bd',12,210)
   }else if(this.bushinState==='punchRecover'&&this.bushinTimer<=0){this.finishBushinAction(.65)}
   else if(this.bushinState==='jumpRise'){

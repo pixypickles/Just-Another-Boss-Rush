@@ -88,7 +88,7 @@ class Boss{
  }
  slam(dmg){this.attack=.75;setTimeout(()=>{if(!running||this.dead)return;for(const h of heroes)if(!h.dead&&Math.hypot(h.x-this.x,h.y-this.y)<205)h.hurt(this.damage(dmg));burst(this.x,this.y,'#ffd08a',42,470);shake=22},430)}
  drawBushin(){
-  const target=heroes.filter(h=>!h.dead).sort((a,b)=>Math.hypot(a.x-this.x,a.y-this.y)-Math.hypot(b.x-this.x,b.y-this.y))[0];/* 元画像は左向き。右へ進む／右を見る場合だけ反転する */const flip=this.bushinKick?this.bushinKickDirX<0:(target?target.x<this.x:false);
+  const target=heroes.filter(h=>!h.dead).sort((a,b)=>Math.hypot(a.x-this.x,a.y-this.y)-Math.hypot(b.x-this.x,b.y-this.y))[0];/* 元画像は左向き。右へ進む／右を見る場合だけ反転する */const flip=this.bushinKick?this.bushinKickDirX>0:(target?target.x>this.x:false);
   if(this.bushinLine){ctx.save();const pulse=.35+.25*Math.sin(performance.now()/70);ctx.globalAlpha=pulse;ctx.strokeStyle='#ff4e5e';ctx.shadowBlur=10;ctx.shadowColor='#ff233b';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(this.bushinLine.x1,this.bushinLine.y1);ctx.lineTo(this.bushinLine.x2,this.bushinLine.y2);ctx.stroke();ctx.restore()}
   const y=this.y-this.bushinAir;ctx.save();ctx.globalAlpha=.3;ctx.fillStyle='#000';ctx.beginPath();const shadowScale=clamp(1-this.bushinAir/220,.25,1);ctx.ellipse(this.x,this.y+27,39*shadowScale,11*shadowScale,0,0,Math.PI*2);ctx.fill();ctx.restore();
   if(this.bushinEcho&&this.bushinEchoLife>0){ctx.save();const wob=Math.sin(performance.now()/48)*5;ctx.globalAlpha=.16+.18*(this.bushinEchoLife/.55);drawSprite(sprites.boss_bushin,this.bushinEcho.x+wob,this.bushinEcho.y,112,126,flip,.35,0);ctx.restore()}

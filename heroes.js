@@ -171,7 +171,7 @@ class Hero{
  }
  draw(i){
   const ctl=i===heroIndex&&!this.dead,img=this.type==='bushin'?(this.bushinKickFx>0?sprites.boss_bushin_kick:sprites.boss_bushin):(sprites['hero_'+this.type]||(this.type==='magicblade'?sprites.hero_knight:null));
-  const flip=boss&&!boss.dead?boss.x<this.x:this.facing.x<0;
+  const flip=this.type==='bushin'?(boss&&!boss.dead?boss.x>this.x:this.facing.x>0):(boss&&!boss.dead?boss.x<this.x:this.facing.x<0);
   const bob=Math.hypot(this.vx,this.vy)>25?Math.sin(performance.now()/85+i)*3:0;
   ctx.save();ctx.globalAlpha=.22;ctx.fillStyle='#000';ctx.beginPath();ctx.ellipse(this.x,this.y+25,36,13,0,0,Math.PI*2);ctx.fill();
   if(ctl){ctx.strokeStyle='#fff09b';ctx.lineWidth=5;ctx.beginPath();ctx.arc(this.x,this.y+3,48,0,Math.PI*2);ctx.stroke()}

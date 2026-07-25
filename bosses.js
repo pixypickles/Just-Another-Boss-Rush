@@ -145,7 +145,7 @@ function setupMoleBattle(){
  boss=createTrainingProxy();boss.x=500;boss.y=525;
  shots.length=particles.length=walls.length=slashes.length=fistTrails.length=minions.length=lasers.length=holyFx.length=holyDots.length=runes.length=0;
  trainingKills=0;trainingElapsed=0;trainingFinished=false;moleFinished=false;moleScore=0;moleCombo=0;moleSpawnTimer=.45;moleAttackFx=0;moleAttackDir='';moles=[];timeStop=0;
- updateUI();notice('モグラ叩き――A左・B上・C下・D右！','#ffd88b',1800)
+ updateUI();notice('モグラ叩き――移動して A左・B上・C下・D右！','#ffd88b',1900)
 }
 function moleMaxActive(){return trainingElapsed<20?1:trainingElapsed<40?2:3}
 function moleVisibleTime(){return trainingElapsed<20?1.0:trainingElapsed<40?.78:trainingElapsed<50?.62:.48}
@@ -154,15 +154,17 @@ function spawnMole(){
  const hole=choices[Math.floor(Math.random()*choices.length)],r=Math.random(),kind=r<.05?'king':r<.2?'gold':'normal';
  moles.push({hole,kind,life:moleVisibleTime(),max:moleVisibleTime(),warn:.15,hit:false})
 }
-function moleDirectionForHole(i){const [x,y]=MOLE_HOLES[i],dx=x-500,dy=y-525;if(Math.abs(dx)>Math.abs(dy))return dx<0?'left':'right';return dy<0?'up':'down'}
 function hitMoles(dir){
+ const h=heroes[0];if(!h)return;
  moleAttackDir=dir;moleAttackFx=.13;let hit=0;
- for(let i=moles.length-1;i>=0;i--){const m=moles[i];if(m.warn>0||m.hit||moleDirectionForHole(m.hole)!==dir)continue;m.hit=true;const pts=m.kind==='king'?5:m.kind==='gold'?3:1;moleScore+=pts;moleCombo++;hit++;const [x,y]=MOLE_HOLES[m.hole];burst(x,y,m.kind==='king'?'#fff08a':m.kind==='gold'?'#ffd75c':'#d6b07a',12,180);particles.push({x,y:y-45,vx:0,vy:-65,r:8,c:'#ffffff',life:.45,max:.45,text:'+'+pts});moles.splice(i,1)}
+ const axis=dir==='left'?[-1,0]:dir==='right'?[1,0]:dir==='up'?[0,-1]:[0,1];
+ for(let i=moles.length-1;i>=0;i--){const m=moles[i];if(m.warn>0||m.hit)continue;const [x,y]=MOLE_HOLES[m.hole],dx=x-h.x,dy=y-h.y,dist=Math.hypot(dx,dy);if(dist>205||dist<18)continue;const forward=(dx*axis[0]+dy*axis[1])/dist,side=Math.abs(dx*axis[1]-dy*axis[0]);if(forward<.48||side>112)continue;m.hit=true;const pts=m.kind==='king'?5:m.kind==='gold'?3:1;moleScore+=pts;moleCombo++;hit++;burst(x,y,m.kind==='king'?'#fff08a':m.kind==='gold'?'#ffd75c':'#d6b07a',12,180);particles.push({x,y:y-45,vx:0,vy:-65,r:8,c:'#ffffff',life:.45,max:.45,text:'+'+pts});moles.splice(i,1)}
  if(!hit)moleCombo=0
 }
 function updateMoleGame(dt){
  trainingElapsed+=dt;moleSpawnTimer-=dt;moleAttackFx=Math.max(0,moleAttackFx-dt);
  if(trainingElapsed>=MOLE_DURATION){trainingElapsed=MOLE_DURATION;finishMoleTraining();return}
+ const h=heroes[0];if(h){let mx=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+joy.x,my=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+joy.y;if(Math.hypot(mx,my)>.08){const n=norm(mx,my),speed=285;h.x+=n.x*speed*dt;h.y+=n.y*speed*dt;h.facing=n}h.x=clamp(h.x,105,895);h.y=clamp(h.y,175,850)}
  if(pressed.has('KeyJ')){pressed.delete('KeyJ');hitMoles('left')}
  if(pressed.has('KeyK')){pressed.delete('KeyK');hitMoles('up')}
  if(pressed.has('KeyL')){pressed.delete('KeyL');hitMoles('down')}

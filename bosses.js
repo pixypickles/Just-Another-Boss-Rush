@@ -148,7 +148,7 @@ function setupMoleBattle(){
  updateUI();notice('モグラ叩き――移動して A左・B上・C下・D右！','#ffd88b',1900)
 }
 function moleMaxActive(){return trainingElapsed<20?1:trainingElapsed<40?2:3}
-function moleVisibleTime(){return trainingElapsed<20?1.0:trainingElapsed<40?.78:trainingElapsed<50?.62:.48}
+function moleVisibleTime(){return trainingElapsed<20?1.25:trainingElapsed<40?1.05:trainingElapsed<50?.88:.72}
 function spawnMole(){
  const active=new Set(moles.map(m=>m.hole)),choices=MOLE_HOLES.map((_,i)=>i).filter(i=>!active.has(i));if(!choices.length)return;
  const hole=choices[Math.floor(Math.random()*choices.length)],r=Math.random(),kind=r<.05?'king':r<.2?'gold':'normal';
@@ -170,7 +170,7 @@ function updateMoleGame(dt){
  if(pressed.has('KeyL')){pressed.delete('KeyL');hitMoles('down')}
  if(pressed.has('KeyI')){pressed.delete('KeyI');hitMoles('right')}
  for(let i=moles.length-1;i>=0;i--){const m=moles[i];if(m.warn>0){m.warn-=dt;continue}m.life-=dt;if(m.life<=0)moles.splice(i,1)}
- while(moleSpawnTimer<=0&&moles.length<moleMaxActive()){spawnMole();moleSpawnTimer+=trainingElapsed<20?.58:trainingElapsed<40?.42:.3}
+ while(moleSpawnTimer<=0&&moles.length<moleMaxActive()){spawnMole();moleSpawnTimer+=trainingElapsed<20?.72:trainingElapsed<40?.58:.46}
  updateUI();released.clear()
 }
 function finishMoleTraining(){

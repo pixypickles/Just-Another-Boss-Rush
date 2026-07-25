@@ -2,7 +2,7 @@ document.querySelectorAll('.tb').forEach(b=>{const code=b.dataset.key;const down
 addEventListener('blur',()=>resetCombatInput());document.addEventListener('visibilitychange',()=>{if(document.hidden)resetCombatInput()});
 const playButton=document.getElementById('play');
 const modeSelect=document.getElementById('partyMode'),partyChoices=[...document.querySelectorAll('.partyChoice')],startChoices=[...document.querySelectorAll('input[name="startHero"]')];
-const trainingPlay=document.getElementById('trainingPlay'),trainingLimitPlay=document.getElementById('trainingLimitPlay'),trainingMolePlay=document.getElementById('trainingMolePlay'),trainingShootingPlay=document.getElementById('trainingShootingPlay'),trainingRank=document.getElementById('trainingRank'),trainingMenuButton=document.getElementById('trainingMenuButton'),trainingPanel=document.getElementById('trainingPanel'),trainingBack=document.getElementById('trainingBack'),mainActions=document.getElementById('mainActions'),trainingPartyChoices=document.getElementById('trainingPartyChoices'),trainingPartySummary=document.getElementById('trainingPartySummary');
+const trainingPlay=document.getElementById('trainingPlay'),trainingLimitPlay=document.getElementById('trainingLimitPlay'),trainingMolePlay=document.getElementById('trainingMolePlay'),trainingShootingPlay=document.getElementById('trainingShootingPlay'),trainingPrecisionPlay=document.getElementById('trainingPrecisionPlay'),trainingRank=document.getElementById('trainingRank'),trainingMenuButton=document.getElementById('trainingMenuButton'),trainingPanel=document.getElementById('trainingPanel'),trainingBack=document.getElementById('trainingBack'),mainActions=document.getElementById('mainActions'),trainingPartyChoices=document.getElementById('trainingPartyChoices'),trainingPartySummary=document.getElementById('trainingPartySummary');
 let trainingSelectedTypes=[];
 const heroUnlockConditions={
  highpriest:'ハイプリーストはヒーラー単独クリアで解放されます',
@@ -24,7 +24,7 @@ function refreshTrainingPartyUi(){
  const unlocked=isTrainingUnlocked(),count=trainingSelectedTypes.length;
  trainingPartySummary.textContent=count?`${count}人部門：${trainingSelectedTypes.map(t=>heroInfo[t]?.name||t).join('・')}`:'参加キャラクターを選んでください';
  [...trainingPartyChoices.querySelectorAll('.trainingPartyChoice')].forEach(b=>{const selected=trainingSelectedTypes.includes(b.dataset.hero);b.classList.toggle('selected',selected);b.classList.toggle('locked',!selected&&count>=3)});
- trainingPlay.disabled=!unlocked||count<1||count>3;trainingLimitPlay.disabled=!unlocked||count<1||count>3;trainingMolePlay.disabled=!unlocked||!isMoleUnlocked()||count!==1||!MOLE_ALLOWED.includes(trainingSelectedTypes[0]);trainingShootingPlay.disabled=!unlocked||count!==1||!SHOOTING_ALLOWED.includes(trainingSelectedTypes[0]);
+ trainingPlay.disabled=!unlocked||count<1||count>3;trainingLimitPlay.disabled=!unlocked||count<1||count>3;trainingMolePlay.disabled=!unlocked||!isMoleUnlocked()||count!==1||!MOLE_ALLOWED.includes(trainingSelectedTypes[0]);trainingShootingPlay.disabled=!unlocked||count!==1||!SHOOTING_ALLOWED.includes(trainingSelectedTypes[0]);trainingPrecisionPlay.disabled=!unlocked||count!==1||!SHOOTING_ALLOWED.includes(trainingSelectedTypes[0]);
 }
 function buildTrainingPartyChoices(){
  trainingPartyChoices.innerHTML='';

@@ -10,6 +10,19 @@ function drawShootingTraining(){
  ctx.fillStyle='#ffffff';ctx.textAlign='center';ctx.font='bold 31px sans-serif';ctx.fillText(`SCORE ${shootingScore}`,600,105);ctx.font='bold 22px sans-serif';ctx.fillText(`COMBO ${shootingCombo}`,600,140);ctx.font='bold 18px sans-serif';ctx.fillStyle='#d8e8f4';ctx.fillText('方向キー：左エリア内を移動　A：射撃',500,930);ctx.restore()
 }
 
+
+function drawPrecisionShootingTraining(){
+ ctx.save();
+ ctx.fillStyle='#07111d';ctx.fillRect(0,100,W,H-100);
+ ctx.fillStyle='#10243a';ctx.fillRect(120,125,760,690);ctx.strokeStyle='#ffd66b';ctx.lineWidth=4;ctx.strokeRect(120,125,760,690);
+ for(let x=215;x<=785;x+=190){ctx.strokeStyle='#ffffff12';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,125);ctx.lineTo(x,815);ctx.stroke()}
+ for(const t of precisionTargets){ctx.save();ctx.translate(t.x,t.y);ctx.fillStyle='#f4f0df';ctx.strokeStyle='#5d3b20';ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,0,t.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#e94d45';ctx.beginPath();ctx.arc(0,0,t.r*.62,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f7f1df';ctx.beginPath();ctx.arc(0,0,t.r*.34,0,Math.PI*2);ctx.fill();ctx.fillStyle='#e94d45';ctx.beginPath();ctx.arc(0,0,t.r*.14,0,Math.PI*2);ctx.fill();ctx.restore()}
+ for(const b of precisionBullets){ctx.save();ctx.translate(b.x,b.y);if(b.type==='shuriken'){ctx.rotate(performance.now()/75);ctx.fillStyle=b.ownerType==='fox'?'#f5fdff':'#dbe7ff';ctx.strokeStyle='#5c79a8';ctx.lineWidth=2;for(let k=0;k<4;k++){ctx.rotate(Math.PI/2);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(16,5);ctx.lineTo(7,0);ctx.lineTo(16,-5);ctx.closePath();ctx.fill();ctx.stroke()}}else{ctx.fillStyle=b.ownerType==='archmage'?'#5fa8ff':'#ff753b';ctx.shadowBlur=14;ctx.shadowColor=ctx.fillStyle;ctx.beginPath();ctx.arc(0,0,b.r,0,Math.PI*2);ctx.fill()}ctx.restore()}
+ heroes[0]?.draw(0);
+ for(const f of precisionJudgeFx){ctx.save();ctx.globalAlpha=Math.min(1,f.life*2);ctx.fillStyle=f.color;ctx.textAlign='center';ctx.font='bold 28px sans-serif';ctx.fillText(f.text,f.x,f.y);ctx.restore()}
+ ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 31px sans-serif';ctx.fillText(`SCORE ${precisionScore}`,500,105);ctx.font='bold 22px sans-serif';ctx.fillText(`COMBO ${precisionCombo}`,500,140);ctx.font='bold 18px sans-serif';ctx.fillStyle='#e8edf2';ctx.fillText('方向キー：左右移動　A：射撃　中心100 / 内側50 / 外側20',500,930);ctx.restore()
+}
+
 function drawMoleTraining(){
  ctx.save();
  for(let i=0;i<MOLE_HOLES.length;i++){const [x,y]=MOLE_HOLES[i];ctx.fillStyle='#090705';ctx.beginPath();ctx.ellipse(x,y+18,60,25,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#6d5841';ctx.lineWidth=6;ctx.stroke();ctx.fillStyle='#0009';ctx.beginPath();ctx.ellipse(x,y+15,46,16,0,0,Math.PI*2);ctx.fill()}
@@ -25,7 +38,7 @@ function draw(){
  ctx.save();
  if(shake>0){ctx.translate(rnd(-shake,shake),rnd(-shake,shake));shake*=.84}
  drawArena();
- if(trainingMode&&trainingChallenge==='mole'){drawMoleTraining();ctx.restore();ctx.globalAlpha=1;return}if(trainingMode&&trainingChallenge==='shooting'){drawShootingTraining();ctx.restore();ctx.globalAlpha=1;return}
+ if(trainingMode&&trainingChallenge==='mole'){drawMoleTraining();ctx.restore();ctx.globalAlpha=1;return}if(trainingMode&&trainingChallenge==='shooting'){drawShootingTraining();ctx.restore();ctx.globalAlpha=1;return}if(trainingMode&&trainingChallenge==='precision'){drawPrecisionShootingTraining();ctx.restore();ctx.globalAlpha=1;return}
  if(trainingMode){for(let i=0;i<TRAINING_SPAWN_POINTS.length;i++){const [x,y]=TRAINING_SPAWN_POINTS[i],flash=trainingSpawnFlash[i]||0,pulse=1+flash*1.1;ctx.save();ctx.translate(x,y);ctx.scale(pulse,pulse);ctx.globalAlpha=.42+flash*.9;ctx.strokeStyle=flash>0?'#6f7680':'#050607';ctx.fillStyle='#00000055';ctx.lineWidth=flash>0?8:6;ctx.beginPath();ctx.arc(0,0,31,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-16,-16);ctx.lineTo(16,16);ctx.moveTo(16,-16);ctx.lineTo(-16,16);ctx.stroke();ctx.restore()}}
  if(!boss||!heroes.length){ctx.restore();ctx.globalAlpha=1;return}
  for(const r of runes){const p=.5+.5*Math.sin(r.pulse),col=r.kind==='fire'?'#ff6b35':r.kind==='ice'?'#74d4ff':'#ffe45c';ctx.save();ctx.translate(r.x,r.y);ctx.globalAlpha=.13+.07*p;ctx.strokeStyle=col;ctx.lineWidth=3;ctx.shadowBlur=8;ctx.shadowColor=col;ctx.beginPath();ctx.arc(0,0,r.r,0,Math.PI*2);ctx.stroke();ctx.rotate(r.pulse*.18);ctx.beginPath();for(let k=0;k<6;k++){const a=k*Math.PI/3;ctx.moveTo(Math.cos(a)*12,Math.sin(a)*12);ctx.lineTo(Math.cos(a)*r.r*.72,Math.sin(a)*r.r*.72)}ctx.stroke();ctx.restore()}

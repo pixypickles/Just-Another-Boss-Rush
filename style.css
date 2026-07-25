@@ -337,3 +337,12 @@
 .trainingPartyChoice.unlockLocked{opacity:.35;cursor:not-allowed}
 .trainingHint{margin-top:8px;color:#91a5bb}
 @media(max-width:700px){.trainingPartyChoices{grid-template-columns:repeat(2,minmax(0,1fr))}.trainingPartyHeader{align-items:flex-start;flex-direction:column}#trainingPartySummary{text-align:left}}
+
+/* v74: unified training challenge cards and single-encounter mimic setup */
+.trainingChallengeButton{min-height:104px;border:1px solid #ffffff2e;border-radius:20px;padding:16px 18px;font:inherit;color:#eaf7ff;background:linear-gradient(180deg,#17263a,#0d1726);box-shadow:0 8px 0 #07101c,0 14px 28px #0006;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:7px;transition:transform .12s ease,filter .12s ease,border-color .12s ease}
+.trainingChallengeButton strong{font-size:clamp(17px,2.4vw,23px);line-height:1.15}.trainingChallengeButton span{font-size:12px;color:#b9c9d9;font-weight:600}.trainingChallengeButton:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.12)}.trainingChallengeButton:active:not(:disabled){transform:translateY(5px);box-shadow:0 3px 0 #07101c}
+#trainingPlay.trainingChallengeButton{border-color:#5bdcff88;background:linear-gradient(180deg,#176f8e,#10364d);box-shadow:0 8px 0 #0b4d65,0 14px 30px #0fbbe533;color:#fff}
+#trainingLimitPlay.trainingChallengeButton{border-color:#b78cff88;background:linear-gradient(180deg,#5b3c83,#2d2248);box-shadow:0 8px 0 #241838,0 14px 30px #8d58ff2b;color:#fff}
+.trainingChallengeButton:disabled{filter:grayscale(.72);opacity:.42;cursor:not-allowed;box-shadow:none;transform:none}
+.mimicBossRow:only-child{grid-template-columns:minmax(180px,230px) 1fr 1fr;padding:18px 14px}.mimicBossRow:only-child>b{font-size:17px}
+@media(max-width:620px){.mimicBossRow:only-child{grid-template-columns:1fr 1fr}.mimicBossRow:only-child>b{grid-column:1/-1}.trainingChallengeButton{min-height:90px}}

@@ -115,7 +115,7 @@ class Hero{
  }
  mimicCopy(button){
   const allies=this.mimicAllies();if(!allies.length){if(button==='a')this.mimicSoloA();else this.mimicSoloB();return}
-  const key=bossDefs[bossIndex]?.kind||'troll',skillId=mimicBattleBuild?.[key]?.[button];
+  const bossKey=bossDefs[bossIndex]?.kind||'troll',key=mimicBattleBuild?.other?'other':bossKey,skillId=mimicBattleBuild?.[key]?.[button];
   const skill=mimicSkillCatalog[skillId],available=new Set(allies.map(h=>h.type));
   if(!skill||!available.has(skill.type)){this.mimicFallback(button);return}
   this.useMimicSkill(skill,button)

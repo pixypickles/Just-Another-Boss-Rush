@@ -16,7 +16,7 @@ function buildTrainingPartyChoices(){
  for(const source of partyChoices){const b=document.createElement('button');b.type='button';b.className='trainingPartyChoice';b.dataset.hero=source.dataset.hero;b.textContent=heroInfo[source.dataset.hero]?.name||source.textContent.replace('（未解放）','');const locked=source.classList.contains('unlockLocked')||source.disabled;b.disabled=locked;b.classList.toggle('unlockLocked',locked);if(locked)b.textContent+='（未解放）';b.addEventListener('click',()=>{if(b.disabled)return;const type=b.dataset.hero,i=trainingSelectedTypes.indexOf(type);if(i>=0)trainingSelectedTypes.splice(i,1);else if(trainingSelectedTypes.length<3)trainingSelectedTypes.push(type);refreshTrainingPartyUi()});trainingPartyChoices.appendChild(b)}
  refreshTrainingPartyUi();
 }
-function refreshTrainingMenu(){const unlocked=isTrainingUnlocked();trainingMenuButton.disabled=!unlocked;trainingMenuButton.textContent=unlocked?'修行場':'修行場（通常クリアで解放）';trainingPlay.textContent='100体撃破タイムアタック';trainingLimitPlay.textContent='60秒・制限時間撃破';trainingRank.innerHTML=trainingRankHtml('100体撃破',readTrainingRankBook())+trainingRankHtml('60秒撃破',readTrainingScoreBook(),true);buildTrainingPartyChoices()}
+function refreshTrainingMenu(){const unlocked=isTrainingUnlocked();trainingMenuButton.disabled=!unlocked;trainingMenuButton.textContent=unlocked?'修行場':'修行場（通常クリアで解放）';trainingPlay.innerHTML='<strong>100体撃破タイムアタック</strong><span>100体を倒すまでの最速タイムを競う</span>';trainingLimitPlay.innerHTML='<strong>60秒・制限時間撃破</strong><span>覚醒無双で60秒間の撃破数を競う</span>';trainingRank.innerHTML=trainingRankHtml('100体撃破',readTrainingRankBook())+trainingRankHtml('60秒撃破',readTrainingScoreBook(),true);buildTrainingPartyChoices()}
 refreshTrainingMenu();
 
 function openTrainingPanel(){if(!isTrainingUnlocked())return;if(!trainingSelectedTypes.length){trainingSelectedTypes=partyChoices.filter(b=>b.classList.contains('selected')&&!b.disabled).slice(0,3).map(b=>b.dataset.hero);if(!trainingSelectedTypes.length)trainingSelectedTypes=['knight']}buildTrainingPartyChoices();mainActions.hidden=true;trainingPanel.hidden=false;document.getElementById('loadStatus').textContent='修行場：参加キャラクターを1〜3人選び、種目を選択してください。'}
@@ -86,7 +86,7 @@ partyChoices.forEach(b=>b.addEventListener('click',()=>{
 }));
 startChoices.forEach(r=>r.addEventListener('change',()=>{if(r.checked)selectedStartType=r.value}));
 syncPartySetup();
-const mimicSetup=document.getElementById('mimicSetup'),mimicBuildRows=document.getElementById('mimicBuildRows'),mimicSaveStart=document.getElementById('mimicSaveStart'),mimicCancel=document.getElementById('mimicCancel');
+const mimicSetup=document.getElementById('mimicSetup'),mimicBuildRows=document.getElementById('mimicBuildRows'),mimicSaveStart=document.getElementById('mimicSaveStart'),mimicCancel=document.getElementById('mimicCancel'),mimicSetupDescription=document.getElementById('mimicSetupDescription');
 const mimicBossList=[
  {key:'troll',name:'巨腕トロール・ガンバ'},
  {key:'dracula',name:'夜侯ドラキュラ'},
@@ -94,16 +94,19 @@ const mimicBossList=[
  {key:'dragon',name:'深紅竜ヴォルガノス'},
  {key:'demonking',name:'終焉の魔王アビス'}
 ];
-let pendingMimicLaunch=null;
+const mimicOtherList=[{key:'other',name:'その他（全戦共通）'}];
+let pendingMimicLaunch=null,activeMimicEntries=mimicBossList;
 function mimicPartySignature(){return selectedTypes.filter(t=>t!=='mimic').sort().join('_')||'solo'}
-function mimicStorageKey(){return 'jabr_mimic_build_v63_'+mimicPartySignature()}
-function readSavedMimicBuild(){try{return JSON.parse(localStorage.getItem(mimicStorageKey())||'null')}catch{return null}}
+function mimicStorageKey(single=false){return 'jabr_mimic_build_v74_'+(single?'other_':'boss_')+mimicPartySignature()}
+function readSavedMimicBuild(single=false){try{return JSON.parse(localStorage.getItem(mimicStorageKey(single))||'null')}catch{return null}}
 function optionLabel(skill){return `${skill.name}（${heroInfo[skill.type]?.name||skill.type}）`}
-function showMimicBuildScreen(onStart){
- const candidates=mimicCandidatesForTypes(selectedTypes),saved=readSavedMimicBuild()||{};
+function showMimicBuildScreen(onStart,single=false){
+ activeMimicEntries=single?mimicOtherList:mimicBossList;
+ const candidates=mimicCandidatesForTypes(selectedTypes),saved=readSavedMimicBuild(single)||{};
+ mimicSetupDescription.textContent=single?'この挑戦で共通して使うA・B技を1組だけ設定します。同じ技を両方へ設定でき、クールタイムは独立します。':'5体のボスごとにA・Bへ技を設定します。同じ技を両方へ設定でき、クールタイムは独立します。';
  if(!candidates.length){mimicBattleBuild=null;onStart();return}
  mimicBuildRows.innerHTML='';
- for(const entry of mimicBossList){
+ for(const entry of activeMimicEntries){
   const row=document.createElement('div');row.className='mimicBossRow';
   const title=document.createElement('b');title.textContent='VS '+entry.name;row.appendChild(title);
   for(const button of ['a','b']){
@@ -118,12 +121,12 @@ function showMimicBuildScreen(onStart){
  pendingMimicLaunch=onStart;mimicSetup.hidden=false;
 }
 function collectMimicBuild(){
- const build={};for(const entry of mimicBossList)build[entry.key]={};
+ const build={};for(const entry of activeMimicEntries)build[entry.key]={};
  mimicBuildRows.querySelectorAll('.mimicSkillSelect').forEach(sel=>build[sel.dataset.boss][sel.dataset.button]=sel.value);
  return build
 }
 mimicCancel.addEventListener('click',()=>{mimicSetup.hidden=true;pendingMimicLaunch=null;startingGame=false;playButton.disabled=false;playButton.textContent='ボス部屋へ入る';document.getElementById('loadStatus').textContent='模倣術設定をキャンセルしました。'});
-mimicSaveStart.addEventListener('click',()=>{const build=collectMimicBuild();mimicBattleBuild=build;try{localStorage.setItem(mimicStorageKey(),JSON.stringify(build))}catch{}mimicSetup.hidden=true;const launch=pendingMimicLaunch;pendingMimicLaunch=null;if(launch)launch()});
+mimicSaveStart.addEventListener('click',()=>{const build=collectMimicBuild();mimicBattleBuild=build;try{localStorage.setItem(mimicStorageKey(activeMimicEntries===mimicOtherList),JSON.stringify(build))}catch{}mimicSetup.hidden=true;const launch=pendingMimicLaunch;pendingMimicLaunch=null;if(launch)launch()});
 let startingGame=false,lastStartRequest=0;
 function launchBattle(){
  partyDeaths=0;awakeningSoloCarry=null;trainingMode=false;bushinMode=modeSelect.value.startsWith('bushin');foxMode=modeSelect.value==='fox3';awakenedMode=!bushinMode&&!foxMode&&modeSelect.value==='awakening';
@@ -137,7 +140,7 @@ function startGame(e){
  const awakening=modeSelect.value==='awakening',need=modeCount(),chosen=partyChoices.filter(b=>b.classList.contains('selected'));
  if(chosen.length!==need){document.getElementById('setupStatus').textContent=`キャラクターを${need}人選んでください`;return}
  startingGame=true;playButton.disabled=true;playButton.textContent='開始しています…';document.getElementById('loadStatus').textContent='ボス部屋を準備しています…';
- if(selectedStartType==='mimic'&&selectedTypes.length>1){showMimicBuildScreen(launchBattle);return}
+ if(selectedStartType==='mimic'&&selectedTypes.length>1){showMimicBuildScreen(launchBattle,modeSelect.value==='fox3'||modeSelect.value.startsWith('bushin'));return}
  mimicBattleBuild=null;launchBattle()
 }
 window.__bossRushStart=startGame;
@@ -150,7 +153,7 @@ function startTraining(e,challenge='time'){
  selectedTypes=[...trainingSelectedTypes];selectedStartType=selectedTypes[0];trainingPartySize=need;trainingChallenge=challenge;
  startingGame=true;trainingPlay.disabled=true;trainingLimitPlay.disabled=true;document.getElementById('loadStatus').textContent=`${need}人部門の${challenge==='limit'?'60秒撃破':'100体撃破'}を準備しています…`;
  const launch=()=>{try{trainingPanel.hidden=true;mainActions.hidden=false;partyDeaths=0;awakeningSoloCarry=null;trainingMode=true;bushinMode=foxMode=false;awakenedMode=trainingChallenge==='limit';bossIndex=0;transition=0;setupTrainingBattle();running=true;last=performance.now();ui.notice.style.opacity=0;ui.start.style.display='none';startingGame=false;refreshTrainingMenu()}catch(err){running=false;startingGame=false;ui.start.style.display='grid';refreshTrainingMenu();document.getElementById('loadStatus').textContent='修行場開始エラー: '+(err?.message||err);console.error(err)}};
- if(selectedTypes.includes('mimic'))showMimicBuildScreen(launch);else launch()
+ if(selectedTypes.includes('mimic'))showMimicBuildScreen(launch,true);else launch()
 }
 trainingPlay.addEventListener('click',e=>startTraining(e,'time'));
 trainingLimitPlay.addEventListener('click',e=>startTraining(e,'limit'));

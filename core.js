@@ -2,7 +2,7 @@
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),W=1000,H=1000;
 const keys=new Set(),pressed=new Set(),released=new Set();let running=false,last=0,heroIndex=0,bossIndex=0,transition=0,shake=0,joy={x:0,y:0,id:null};let selectedTypes=['knight','mage','healer'],selectedStartType='knight',awakenedMode=false,bushinMode=false,foxMode=false,hardMode=false,difficultyMode='normal',enemyHpMultiplier=1,enemyAttackMultiplier=1,difficultyLabel='',trainingMode=false,partyDeaths=0,awakeningSoloCarry=null,dInputBuffer=0,timeStop=0;
 let trainingKills=0,trainingElapsed=0,trainingSpawnTimer=0,trainingFinished=false,trainingPartySize=1,trainingChallenge='time';
-let moleScore=0,moleCombo=0,moleSpawnTimer=0,moleAttackFx=0,moleAttackDir='',moleFinished=false,moles=[];
+let moleScore=0,moleCombo=0,moleSpawnTimer=0,moleAttackFx=0,moleAttackDir='',moleFinished=false,moles=[],moleInputQueue=[];
 const MOLE_DURATION=60,MOLE_ALLOWED=['knight','magicblade','dragonknight','bushin'];
 const MOLE_HOLES=[[285,325],[500,285],[715,325],[750,500],[715,675],[500,715],[285,675],[250,500]];
 const TRAINING_SPAWN_POINTS=[[145,190],[855,190],[145,825],[855,825]],trainingSpawnFlash=[0,0,0,0];
@@ -64,7 +64,7 @@ function readMoleScoreBook(){try{const v=JSON.parse(localStorage.getItem(MOLE_SC
 function saveMoleScore(score,type){const book=readMoleScoreBook(),r=book[type]||[];r.push({score,date:Date.now()});r.sort((a,b)=>b.score-a.score);book[type]=r.slice(0,3);try{localStorage.setItem(MOLE_SCORE_KEY,JSON.stringify(book))}catch(e){}return book[type]}
 
 function enemyDamage(n){return n*(awakenedMode?1.25:1)*enemyAttackMultiplier}
-function resetCombatInput(){keys.clear();pressed.clear();released.clear();dInputBuffer=0;joy.x=0;joy.y=0;joy.id=null;const stick=document.getElementById('stick');if(stick)stick.style.transform='translate(0,0)';document.querySelectorAll('.tb.active').forEach(b=>b.classList.remove('active'))}
+function resetCombatInput(){keys.clear();pressed.clear();released.clear();dInputBuffer=0;moleInputQueue.length=0;joy.x=0;joy.y=0;joy.id=null;const stick=document.getElementById('stick');if(stick)stick.style.transform='translate(0,0)';document.querySelectorAll('.tb.active').forEach(b=>b.classList.remove('active'))}
 const shots=[],particles=[],walls=[],slashes=[],fistTrails=[],minions=[],lasers=[],bloodBeams=[],holyFx=[],holyDots=[],runes=[];
 const AWAKEN_MINION_LIMIT=28,AWAKEN_SUMMON_MULTIPLIER=4;
 const spriteFiles={

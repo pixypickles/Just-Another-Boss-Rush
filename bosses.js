@@ -192,6 +192,43 @@ function finishMoleTraining(){
  if(moleFinished)return;moleFinished=true;trainingFinished=true;running=false;resetCombatInput();const type=heroes[0].type,ranks=saveMoleScore(moleScore,type),rank=ranks.findIndex(r=>r.score===moleScore)+1;
  const msg=`TIME UP!! ${moleScore}点${rank>0?' / TOP '+rank:''}`;notice(msg,'#fff08a',4200);document.getElementById('loadStatus').textContent=`モグラ叩き ${moleScore}点　${heroInfo[type]?.name||type}`;if(window.refreshTrainingMenu)window.refreshTrainingMenu();setTimeout(()=>ui.start.style.display='grid',1700)
 }
+
+function setupShootingBattle(){
+ resetCombatInput();trainingPartySize=1;selectedTypes=[selectedTypes[0]];selectedStartType=selectedTypes[0];
+ heroes=[new Hero(selectedTypes[0],185,515)];heroes.forEach(validateHeroSkills);heroIndex=0;heroes[0].facing={x:1,y:0};
+ boss=createTrainingProxy();boss.x=900;boss.y=500;
+ shots.length=particles.length=walls.length=slashes.length=fistTrails.length=minions.length=lasers.length=holyFx.length=holyDots.length=runes.length=0;
+ trainingElapsed=0;trainingFinished=false;shootingFinished=false;shootingScore=0;shootingCombo=0;shootingSpawnTimer=.45;shootingFireCd=0;shootingTargets.length=0;shootingBullets.length=0;timeStop=0;
+ updateUI();notice('射撃訓練――Aボタンで流れる的を撃ち抜け！','#9fe8ff',2200)
+}
+function spawnShootingTarget(){
+ const roll=Math.random(),kind=roll<.10?'gold':roll<.30?'small':'normal',r=kind==='small'?21:kind==='gold'?31:28;
+ let y=rnd(180,850);for(let tries=0;tries<6&&shootingTargets.some(t=>Math.abs(t.y-y)<72);tries++)y=rnd(180,850);
+ const progress=Math.min(1,trainingElapsed/SHOOTING_DURATION),speed=(kind==='small'?230:kind==='gold'?165:185)+progress*55+rnd(-12,18);
+ shootingTargets.push({x:970+rnd(0,75),y,r,kind,vx:-speed,life:8,wobble:rnd(0,Math.PI*2),points:kind==='gold'?3:kind==='small'?2:1})
+}
+function fireShootingBullet(){
+ if(shootingFireCd>0||!heroes[0])return;const h=heroes[0],type=h.type;
+ if((type==='ninja'||type==='fox')&&shootingBullets.filter(b=>b.ownerType===type).length>=2)return;
+ const angles=type==='archmage'?[-.18,0,.18]:type==='mage'?[-.11,.11]:[0];
+ for(const a of angles){const speed=type==='ninja'?720:type==='fox'?680:600;shootingBullets.push({x:h.x+38,y:h.y-8,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:type==='archmage'?13:type==='mage'?14:11,life:2.2,ownerType:type,type:(type==='ninja'||type==='fox')?'shuriken':'fire'})}
+ shootingFireCd=type==='ninja'||type==='fox'?.13:.22;h.attackAnim=.12
+}
+function updateShootingGame(dt){
+ trainingElapsed+=dt;shootingSpawnTimer-=dt;shootingFireCd=Math.max(0,shootingFireCd-dt);
+ if(trainingElapsed>=SHOOTING_DURATION){trainingElapsed=SHOOTING_DURATION;finishShootingTraining();return}
+ const h=heroes[0];if(h){let mx=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+joy.x,my=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+joy.y;if(Math.hypot(mx,my)>.08){const n=norm(mx,my);h.x+=n.x*230*dt;h.y+=n.y*230*dt}h.x=clamp(h.x,95,335);h.y=clamp(h.y,165,865);h.facing={x:1,y:0}}
+ if(pressed.has('KeyJ')){pressed.delete('KeyJ');fireShootingBullet()}
+ while(shootingSpawnTimer<=0){if(shootingTargets.length<7)spawnShootingTarget();shootingSpawnTimer+=Math.max(.34,.68-trainingElapsed*.0045)}
+ for(let i=shootingBullets.length-1;i>=0;i--){const b=shootingBullets[i];b.life-=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.life<=0||b.x>975||b.y<120||b.y>930){shootingBullets.splice(i,1);continue}let hit=false;for(let j=shootingTargets.length-1;j>=0;j--){const t=shootingTargets[j];if(Math.hypot(b.x-t.x,b.y-t.y)<b.r+t.r){shootingScore+=t.points;shootingCombo++;burst(t.x,t.y,t.kind==='gold'?'#ffe46b':t.kind==='small'?'#9fe8ff':'#ffb27a',14,210);particles.push({x:t.x,y:t.y-35,vx:0,vy:-60,r:8,c:'#ffffff',life:.5,max:.5,text:'+'+t.points});shootingTargets.splice(j,1);shootingBullets.splice(i,1);hit=true;break}}if(hit)continue}
+ for(let i=shootingTargets.length-1;i>=0;i--){const t=shootingTargets[i];t.life-=dt;t.wobble+=dt*2.6;t.x+=t.vx*dt;t.y+=Math.sin(t.wobble)*12*dt;if(t.x<355||t.life<=0){shootingTargets.splice(i,1);shootingCombo=0}}
+ updateUI();released.clear()
+}
+function finishShootingTraining(){
+ if(shootingFinished)return;shootingFinished=true;trainingFinished=true;running=false;resetCombatInput();const type=heroes[0].type,ranks=saveShootingScore(shootingScore,type),rank=ranks.findIndex(r=>r.score===shootingScore)+1;
+ const msg=`TIME UP!! ${shootingScore}点${rank>0?' / TOP '+rank:''}`;notice(msg,'#fff08a',4200);document.getElementById('loadStatus').textContent=`射撃訓練 ${shootingScore}点　${heroInfo[type]?.name||type}`;if(window.refreshTrainingMenu)window.refreshTrainingMenu();setTimeout(()=>ui.start.style.display='grid',1700)
+}
+
 // v68 training ground
 function createTrainingProxy(){
  return {kind:'training',name:'修行場',x:500,y:500,r:1,hp:100,maxHp:100,dead:false,inv:0,volley:0,vx:0,vy:0,

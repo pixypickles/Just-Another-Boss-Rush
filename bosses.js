@@ -148,7 +148,7 @@ function createTrainingProxy(){
 }
 function spawnTrainingMinion(){
  if(!trainingMode||trainingFinished||trainingKills+minions.length>=100||minions.length>=8)return;
- const points=[[145,190],[855,190],[145,825],[855,825]],p=points[Math.floor(Math.random()*points.length)],strong=Math.random()<Math.min(.32,.08+trainingKills*.0022),hp=strong?190:105;
+ const points=[[145,190],[855,190],[145,825],[855,825]],p=points[Math.floor(Math.random()*points.length)],strong=Math.random()<Math.min(.32,.08+trainingKills*.0022),growth=Math.min(1,trainingKills/70),hp=Math.round(strong?(78+112*growth):(38+67*growth));
  minions.push({x:p[0]+rnd(-25,25),y:p[1]+rnd(-25,25),vx:0,vy:0,r:strong?27:21,hp,maxHp:hp,life:9999,cd:rnd(.35,.9),damage:strong?34:23,strong,training:true})
 }
 function setupTrainingBattle(){

@@ -317,3 +317,11 @@
 .trainingRank b{color:#9feaff}.trainingRank .rankRow{display:grid;grid-template-columns:36px 1fr 100px;gap:8px;border-top:1px solid #ffffff12;padding:4px 0}.trainingRank .rankRow:first-of-type{border-top:0}
 
 .trainingSizeLabel{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:10px;background:#111a27;border:1px solid #ffffff22;color:#dce9f7;font-size:13px}.trainingSizeLabel select{background:#0b111d;color:#fff;border:1px solid #ffffff30;border-radius:7px;padding:7px 10px}.trainingRank .rankSection{margin-top:8px;padding-top:6px;border-top:1px solid #ffffff20}.trainingRank .rankSection:first-of-type{border-top:0}.trainingRank .rankTitle{color:#fff08a;font-weight:700;margin-bottom:3px}.trainingRank .rankRow{grid-template-columns:36px 1fr 90px}.trainingRank .rankParty{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* v72: expandable training hall menu */
+.trainingPanel{margin-top:12px;padding:14px;border:1px solid rgba(145,205,255,.35);border-radius:14px;background:rgba(5,16,34,.88)}
+.trainingPanel[hidden],.mainActions[hidden]{display:none!important}
+.trainingPanel h2{margin:0 0 6px;color:#bfeaff}
+.trainingChallengeButtons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.trainingPanel #trainingBack{margin-top:10px;min-width:120px}
+@media(max-width:700px){.trainingChallengeButtons{grid-template-columns:1fr}}

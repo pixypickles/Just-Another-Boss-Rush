@@ -4,6 +4,21 @@ const playButton=document.getElementById('play');
 const modeSelect=document.getElementById('partyMode'),partyChoices=[...document.querySelectorAll('.partyChoice')],startChoices=[...document.querySelectorAll('input[name="startHero"]')];
 const trainingPlay=document.getElementById('trainingPlay'),trainingLimitPlay=document.getElementById('trainingLimitPlay'),trainingRank=document.getElementById('trainingRank'),trainingMenuButton=document.getElementById('trainingMenuButton'),trainingPanel=document.getElementById('trainingPanel'),trainingBack=document.getElementById('trainingBack'),mainActions=document.getElementById('mainActions'),trainingPartyChoices=document.getElementById('trainingPartyChoices'),trainingPartySummary=document.getElementById('trainingPartySummary');
 let trainingSelectedTypes=[];
+const heroUnlockConditions={
+ highpriest:'ハイプリーストはヒーラー単独クリアで解放されます',
+ magicblade:'魔剣士はナイト単独クリアで解放されます',
+ runemage:'ルーンメイジは魔法使い単独クリアで解放されます',
+ archmage:'アークメイジは魔法使いを含む編成で修行場をクリアすると解放されます',
+ qigong:'気功師はモンク単独クリアで解放されます',
+ ninja:'忍者は覚醒無双以外を1人または2人でクリアすると解放されます',
+ dragonknight:'竜騎士はどの編成でも1回クリアすると解放されます',
+ dracula:'ドラキュラはステージ2を回復職1人または2人だけで撃破すると解放されます',
+ mimic:'模倣術師は竜騎士単独クリアで解放されます',
+ bushin:'武神は武神挑戦モード撃破で解放されます',
+ fox:'白狐忍は忍者単独・覚醒無双なしで通常クリア後、キツネ対戦モードを制覇すると解放されます',
+ monk:'モンクはどの編成でも1回クリアすると解放されます'
+};
+function heroUnlockCondition(type){return heroUnlockConditions[type]||'特別な条件で解放されます'}
 function trainingRankHtml(title,book,score=false){return `<b>${title} 部門別 TOP 3</b>`+[1,2,3].map(size=>{const ranks=book[size]||[];return `<div class="rankSection"><div class="rankTitle">${size}人部門</div>${ranks.length?ranks.map((r,i)=>{const types=Array.isArray(r.types)?r.types:[r.type];return `<div class="rankRow"><span>${i+1}位</span><span class="rankParty">${types.map(t=>heroInfo[t]?.name||t).join('・')}</span><strong>${score?r.kills+'体':formatTrainingTime(r.time)}</strong></div>`}).join(''):'<div>記録はまだありません。</div>'}</div>`}).join('')}
 function refreshTrainingPartyUi(){
  const unlocked=isTrainingUnlocked(),count=trainingSelectedTypes.length;
@@ -13,7 +28,7 @@ function refreshTrainingPartyUi(){
 }
 function buildTrainingPartyChoices(){
  trainingPartyChoices.innerHTML='';
- for(const source of partyChoices){const b=document.createElement('button');b.type='button';b.className='trainingPartyChoice';b.dataset.hero=source.dataset.hero;b.textContent=heroInfo[source.dataset.hero]?.name||source.textContent.replace('（未解放）','');const locked=source.classList.contains('unlockLocked')||source.disabled;b.disabled=locked;b.classList.toggle('unlockLocked',locked);if(locked)b.textContent+='（未解放）';b.addEventListener('click',()=>{if(b.disabled)return;const type=b.dataset.hero,i=trainingSelectedTypes.indexOf(type);if(i>=0)trainingSelectedTypes.splice(i,1);else if(trainingSelectedTypes.length<3)trainingSelectedTypes.push(type);refreshTrainingPartyUi()});trainingPartyChoices.appendChild(b)}
+ for(const source of partyChoices){const b=document.createElement('button');b.type='button';b.className='trainingPartyChoice';b.dataset.hero=source.dataset.hero;b.textContent=heroInfo[source.dataset.hero]?.name||source.textContent.replace('（未解放）','');const locked=source.classList.contains('unlockLocked');b.classList.toggle('unlockLocked',locked);if(locked)b.textContent+='（未解放）';b.addEventListener('click',()=>{const type=b.dataset.hero;if(b.classList.contains('unlockLocked')){trainingPartySummary.textContent=heroUnlockCondition(type);return}const i=trainingSelectedTypes.indexOf(type);if(i>=0)trainingSelectedTypes.splice(i,1);else if(trainingSelectedTypes.length<3)trainingSelectedTypes.push(type);refreshTrainingPartyUi()});trainingPartyChoices.appendChild(b)}
  refreshTrainingPartyUi();
 }
 function refreshTrainingMenu(){const unlocked=isTrainingUnlocked();trainingMenuButton.disabled=!unlocked;trainingMenuButton.textContent=unlocked?'修行場':'修行場（通常クリアで解放）';trainingPlay.innerHTML='<strong>100体撃破タイムアタック</strong><span>100体を倒すまでの最速タイムを競う</span>';trainingLimitPlay.innerHTML='<strong>60秒・制限時間撃破</strong><span>覚醒無双で60秒間の撃破数を競う</span>';trainingRank.innerHTML=trainingRankHtml('100体撃破',readTrainingRankBook())+trainingRankHtml('60秒撃破',readTrainingScoreBook(),true);buildTrainingPartyChoices()}
@@ -71,7 +86,7 @@ function syncPartySetup(){
 }
 modeSelect.addEventListener('change',()=>{const awakening=modeSelect.value==='awakening',bushin=modeSelect.value.startsWith('bushin'),fox=modeSelect.value==='fox3',need=modeCount();partyChoices.forEach((b,i)=>b.classList.toggle('selected',i<need));selectedStartType=partyChoices.find(b=>b.classList.contains('selected'))?.dataset.hero||'knight';syncPartySetup()});
 partyChoices.forEach(b=>b.addEventListener('click',()=>{
- if(b.classList.contains('unlockLocked')){document.getElementById('setupStatus').textContent=({highpriest:'ハイプリーストはヒーラー単独クリアで解放されます',magicblade:'魔剣士はナイト単独クリアで解放されます',runemage:'ルーンメイジは魔法使い単独クリアで解放されます',qigong:'気功師はモンク単独クリアで解放されます',ninja:'忍者は覚醒無双以外を1人または2人でクリアすると解放されます',dragonknight:'竜騎士はどの編成でも1回クリアすると解放されます',dracula:'ドラキュラはステージ2を回復職1人または2人だけで撃破すると解放されます',mimic:'模倣術師は竜騎士単独クリアで解放されます',bushin:'武神は武神挑戦モード撃破で解放されます',fox:'白狐忍は忍者単独・覚醒無双なしで通常クリア後、キツネ対戦モードを制覇すると解放されます',archmage:'アークメイジは魔法使いを含む編成で修行場をクリアすると解放されます',monk:'モンクはどの編成でも1回クリアすると解放されます'}[b.dataset.hero]||'特別な条件で解放されます');return}
+ if(b.classList.contains('unlockLocked')){document.getElementById('setupStatus').textContent=heroUnlockCondition(b.dataset.hero);return}
  const awakening=modeSelect.value==='awakening',need=modeCount(),selected=b.classList.contains('selected');
  if(!selected){
   const chosen=partyChoices.filter(x=>x.classList.contains('selected'));

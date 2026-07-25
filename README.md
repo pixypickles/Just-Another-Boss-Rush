@@ -24,3 +24,8 @@ v67-5: 敵白狐忍・三影の攻撃力を全体強化。敵専用倍率1.18倍
 - 修行場中のみA/B/C/Dクールタイム回復速度を25%短縮
 - 序盤の手下HPを低くし、70体目まで段階的に従来値へ上昇
 - プレイヤー白狐忍の白影手裏剣ダメージを24から32へ強化
+
+v75 changes:
+- Added Archmage A/B/C skills to Mimic skill selection when Archmage is in the party.
+- Locked character buttons are now tappable and show the character's unlock condition.
+- The same unlock-condition display works in both the boss-room party selector and training-ground party selector.

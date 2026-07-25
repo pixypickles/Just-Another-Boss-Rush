@@ -1,10 +1,10 @@
 'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),W=1000,H=1000;
-const keys=new Set(),pressed=new Set(),released=new Set();let running=false,last=0,heroIndex=0,bossIndex=0,transition=0,shake=0,joy={x:0,y:0,id:null};let selectedTypes=['knight','mage','healer'],selectedStartType='knight',awakenedMode=false,bushinMode=false,foxMode=false,trainingMode=false,partyDeaths=0,awakeningSoloCarry=null,dInputBuffer=0,timeStop=0;
+const keys=new Set(),pressed=new Set(),released=new Set();let running=false,last=0,heroIndex=0,bossIndex=0,transition=0,shake=0,joy={x:0,y:0,id:null};let selectedTypes=['knight','mage','healer'],selectedStartType='knight',awakenedMode=false,bushinMode=false,foxMode=false,hardMode=false,trainingMode=false,partyDeaths=0,awakeningSoloCarry=null,dInputBuffer=0,timeStop=0;
 let trainingKills=0,trainingElapsed=0,trainingSpawnTimer=0,trainingFinished=false,trainingPartySize=1,trainingChallenge='time';
 const TRAINING_SPAWN_POINTS=[[145,190],[855,190],[145,825],[855,825]],trainingSpawnFlash=[0,0,0,0];
 let mimicBattleBuild=null;
-const AWAKEN_UNLOCK_KEY='jabrAwakeningUnlockedV1',MONK_UNLOCK_KEY='jabrMonkUnlockedV1',HIGHPRIEST_UNLOCK_KEY='jabrHighPriestUnlockedV2',MAGICBLADE_UNLOCK_KEY='jabrMagicbladeUnlockedV1',RUNEMAGE_UNLOCK_KEY='jabrRunemageUnlockedV1',QIGONG_UNLOCK_KEY='jabrQigongUnlockedV1',NINJA_UNLOCK_KEY='jabrNinjaUnlockedV1',DRAGONKNIGHT_UNLOCK_KEY='jabrDragonKnightUnlockedV1',DRACULA_UNLOCK_KEY='jabrPlayableDraculaUnlockedV1',MIMIC_UNLOCK_KEY='jabrMimicUnlockedV1',BUSHIN_UNLOCK_KEY='jabrBushinChallengeUnlockedV1',PLAYABLE_BUSHIN_UNLOCK_KEY='jabrPlayableBushinUnlockedV1',FOX_MODE_UNLOCK_KEY='jabrFoxBattleUnlockedV1',FOX_UNLOCK_KEY='jabrPlayableFoxUnlockedV1',TRAINING_UNLOCK_KEY='jabrTrainingUnlockedV1',TRAINING_RANK_KEY='jabrTraining100Top3V3',TRAINING_LEGACY_RANK_KEY='jabrTraining100Top5V2',TRAINING_SCORE_KEY='jabrTraining60Top3V1',ARCHMAGE_UNLOCK_KEY='jabrArchmageUnlockedV1';
+const AWAKEN_UNLOCK_KEY='jabrAwakeningUnlockedV1',MONK_UNLOCK_KEY='jabrMonkUnlockedV1',HIGHPRIEST_UNLOCK_KEY='jabrHighPriestUnlockedV2',MAGICBLADE_UNLOCK_KEY='jabrMagicbladeUnlockedV1',RUNEMAGE_UNLOCK_KEY='jabrRunemageUnlockedV1',QIGONG_UNLOCK_KEY='jabrQigongUnlockedV1',NINJA_UNLOCK_KEY='jabrNinjaUnlockedV1',DRAGONKNIGHT_UNLOCK_KEY='jabrDragonKnightUnlockedV1',DRACULA_UNLOCK_KEY='jabrPlayableDraculaUnlockedV1',MIMIC_UNLOCK_KEY='jabrMimicUnlockedV1',BUSHIN_UNLOCK_KEY='jabrBushinChallengeUnlockedV1',PLAYABLE_BUSHIN_UNLOCK_KEY='jabrPlayableBushinUnlockedV1',FOX_MODE_UNLOCK_KEY='jabrFoxBattleUnlockedV1',FOX_UNLOCK_KEY='jabrPlayableFoxUnlockedV1',TRAINING_UNLOCK_KEY='jabrTrainingUnlockedV1',TRAINING_RANK_KEY='jabrTraining100Top3V3',TRAINING_LEGACY_RANK_KEY='jabrTraining100Top5V2',TRAINING_SCORE_KEY='jabrTraining60Top3V1',ARCHMAGE_UNLOCK_KEY='jabrArchmageUnlockedV1',HARD3_CLEAR_KEY='jabrHard3ClearedV1';
 function isAwakeningUnlocked(){try{return localStorage.getItem(AWAKEN_UNLOCK_KEY)==='1'}catch(e){return false}}
 function saveAwakeningUnlock(){try{localStorage.setItem(AWAKEN_UNLOCK_KEY,'1')}catch(e){}}
 function isMonkUnlocked(){try{return localStorage.getItem(MONK_UNLOCK_KEY)==='1'}catch(e){return false}}
@@ -39,6 +39,8 @@ function saveFoxUnlock(){try{localStorage.setItem(FOX_UNLOCK_KEY,'1')}catch(e){}
 
 function isArchmageUnlocked(){try{return localStorage.getItem(ARCHMAGE_UNLOCK_KEY)==='1'}catch(e){return false}}
 function saveArchmageUnlock(){try{localStorage.setItem(ARCHMAGE_UNLOCK_KEY,'1')}catch(e){}}
+function isHard3Cleared(){try{return localStorage.getItem(HARD3_CLEAR_KEY)==='1'}catch(e){return false}}
+function saveHard3Clear(){try{localStorage.setItem(HARD3_CLEAR_KEY,'1')}catch(e){}}
 function isTrainingUnlocked(){try{return localStorage.getItem(TRAINING_UNLOCK_KEY)==='1'}catch(e){return false}}
 function saveTrainingUnlock(){try{localStorage.setItem(TRAINING_UNLOCK_KEY,'1')}catch(e){}}
 function emptyTrainingBook(){return {1:[],2:[],3:[]}}
@@ -49,7 +51,7 @@ function saveTrainingRank(time,types){const size=Math.max(1,Math.min(3,types.len
 function saveTrainingScore(kills,types){const size=Math.max(1,Math.min(3,types.length)),book=readTrainingScoreBook(),ranks=book[size];ranks.push({kills,types:[...types]});ranks.sort((a,b)=>b.kills-a.kills);book[size]=ranks.slice(0,3);try{localStorage.setItem(TRAINING_SCORE_KEY,JSON.stringify(book))}catch(e){}return book[size]}
 function formatTrainingTime(sec){const m=Math.floor(sec/60),s=Math.floor(sec%60),cs=Math.floor((sec-Math.floor(sec))*100);return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(cs).padStart(2,'0')}`}
 
-function enemyDamage(n){return awakenedMode?n*1.25:n}
+function enemyDamage(n){return n*(awakenedMode?1.25:1)*(hardMode?1.5:1)}
 function resetCombatInput(){keys.clear();pressed.clear();released.clear();dInputBuffer=0;joy.x=0;joy.y=0;joy.id=null;const stick=document.getElementById('stick');if(stick)stick.style.transform='translate(0,0)';document.querySelectorAll('.tb.active').forEach(b=>b.classList.remove('active'))}
 const shots=[],particles=[],walls=[],slashes=[],fistTrails=[],minions=[],lasers=[],bloodBeams=[],holyFx=[],holyDots=[],runes=[];
 const AWAKEN_MINION_LIMIT=28,AWAKEN_SUMMON_MULTIPLIER=4;

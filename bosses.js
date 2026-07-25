@@ -55,13 +55,18 @@ class Boss{
  startBushinLine(target){const dir=norm(target.x-this.x,target.y-this.y),len=1050;this.bushinLine={x1:this.x,y1:this.y,x2:this.x+dir.x*len,y2:this.y+dir.y*len};this.bushinState='lineTelegraph';this.bushinTimer=.72;this.vx=this.vy=0;notice('神速飛び蹴り――赤線から離れろ！','#ff8a94',720)}
  finishBushinAction(delay){this.bushinState='idle';this.bushinTimer=delay;this.bushinAir=0;this.bushinKick=false;this.bushinLine=null;this.bushinCounterTarget=null;this.bushinCounterTriggered=false;this.attack=0}
  foxPositions(target){
-  const aim=target?norm(target.x-this.x,target.y-this.y):{x:-1,y:0},side={x:-aim.y,y:aim.x},pulse=Math.sin(performance.now()/360)*16;
-  const slots=[
-   {f:118,s:0,bob:Math.sin(performance.now()/180)*8},
-   {f:-72,s:196+pulse,bob:Math.sin(performance.now()/210+2.1)*10},
-   {f:-72,s:-196-pulse,bob:Math.sin(performance.now()/230+4.2)*10}
-  ],order=[[0,1,2],[1,2,0],[2,0,1]][this.foxFormationStep]||[0,1,2];
-  return order.map((slotIndex,role)=>{const q=slots[slotIndex];return{x:clamp(this.x+aim.x*q.f+side.x*q.s,95,905),y:clamp(this.y+aim.y*q.f+side.y*q.s+q.bob,145,905),role}})
+  // 画面を上・中・下の3帯に分け、三影が同じ高さへ固まらないようにする。
+  // 数秒ごとに担当帯を交代するが、各個体は担当帯の範囲内だけで動く。
+  const now=performance.now(),laneCenters=[270,525,780],laneHalf=92;
+  const order=[[0,1,2],[1,2,0],[2,0,1]][this.foxFormationStep]||[0,1,2];
+  const baseX=target?target.x:this.x,xOffsets=[-165,0,165];
+  return order.map((laneIndex,role)=>{
+   const bob=Math.sin(now/(205+role*27)+role*2.15)*24;
+   const drift=Math.sin(now/(430+role*35)+role*1.7)*58;
+   const laneY=clamp(laneCenters[laneIndex]+bob,laneCenters[laneIndex]-laneHalf,laneCenters[laneIndex]+laneHalf);
+   const x=clamp(baseX+xOffsets[role]+drift,105,895);
+   return{x,y:laneY,role,lane:laneIndex}
+  })
  }
  radial(count,speed,type='enemy',damage=30,spread=0){for(let i=0;i<count;i++){const a=Math.PI*2*i/count+spread;shots.push({team:'boss',type,x:this.x,y:this.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:12,life:3.2,damage:this.damage(damage)})}}
  aimed(target,count=3,speed=330,type='enemy',damage=34){const base=Math.atan2(target.y-this.y,target.x-this.x);for(let i=0;i<count;i++){const a=base+(i-(count-1)/2)*.16;shots.push({team:'boss',type,x:this.x,y:this.y,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:13,life:3,damage:this.damage(damage)})}}

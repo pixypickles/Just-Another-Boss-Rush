@@ -145,7 +145,7 @@ function setupMoleBattle(){
  boss=createTrainingProxy();boss.x=500;boss.y=525;
  shots.length=particles.length=walls.length=slashes.length=fistTrails.length=minions.length=lasers.length=holyFx.length=holyDots.length=runes.length=0;
  trainingKills=0;trainingElapsed=0;trainingFinished=false;moleFinished=false;moleScore=0;moleCombo=0;moleSpawnTimer=.45;moleAttackFx=0;moleAttackDir='';moles=[];moleInputQueue.length=0;timeStop=0;
- updateUI();notice('モグラ叩き――移動して A左・B上・C下・D右！','#ffd88b',1900)
+ updateUI();notice('モグラ叩き――方向入力＋ABCDで斜め攻撃も可能！','#ffd88b',2100)
 }
 function moleMaxActive(){return trainingElapsed<20?1:trainingElapsed<40?2:3}
 function moleVisibleTime(){return trainingElapsed<20?1.25:trainingElapsed<40?1.05:trainingElapsed<50?.88:.72}
@@ -154,10 +154,24 @@ function spawnMole(){
  const hole=choices[Math.floor(Math.random()*choices.length)],r=Math.random(),kind=r<.05?'king':r<.2?'gold':'normal';
  moles.push({hole,kind,life:moleVisibleTime(),max:moleVisibleTime(),warn:.15,hit:false})
 }
+function moleMoveVector(snapshot=null){
+ if(snapshot)return {x:snapshot.mx||0,y:snapshot.my||0};
+ return {x:(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+joy.x,
+  y:(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+joy.y}
+}
+function resolveMoleAttackDir(baseDir,snapshot=null){
+ const v=moleMoveVector(snapshot),sx=v.x>.25?1:v.x<-.25?-1:0,sy=v.y>.25?1:v.y<-.25?-1:0;
+ if(baseDir==='left'&&sx<0&&sy)return sy<0?'upLeft':'downLeft';
+ if(baseDir==='right'&&sx>0&&sy)return sy<0?'upRight':'downRight';
+ if(baseDir==='up'&&sy<0&&sx)return sx<0?'upLeft':'upRight';
+ if(baseDir==='down'&&sy>0&&sx)return sx<0?'downLeft':'downRight';
+ return baseDir
+}
 function hitMoles(dir){
  const h=heroes[0];if(!h)return;
  moleAttackDir=dir;moleAttackFx=.13;let hit=0;
- const axis=dir==='left'?[-1,0]:dir==='right'?[1,0]:dir==='up'?[0,-1]:[0,1];
+ const axes={left:[-1,0],right:[1,0],up:[0,-1],down:[0,1],upLeft:[-Math.SQRT1_2,-Math.SQRT1_2],upRight:[Math.SQRT1_2,-Math.SQRT1_2],downLeft:[-Math.SQRT1_2,Math.SQRT1_2],downRight:[Math.SQRT1_2,Math.SQRT1_2]};
+ const axis=axes[dir]||[0,1];
  for(let i=moles.length-1;i>=0;i--){const m=moles[i];if(m.warn>0||m.hit)continue;const [x,y]=MOLE_HOLES[m.hole],dx=x-h.x,dy=y-h.y,dist=Math.hypot(dx,dy);if(dist>205||dist<18)continue;const forward=(dx*axis[0]+dy*axis[1])/dist,side=Math.abs(dx*axis[1]-dy*axis[0]);if(forward<.48||side>112)continue;m.hit=true;const pts=m.kind==='king'?5:m.kind==='gold'?3:1;moleScore+=pts;moleCombo++;hit++;burst(x,y,m.kind==='king'?'#fff08a':m.kind==='gold'?'#ffd75c':'#d6b07a',12,180);particles.push({x,y:y-45,vx:0,vy:-65,r:8,c:'#ffffff',life:.45,max:.45,text:'+'+pts});moles.splice(i,1)}
  if(!hit)moleCombo=0
 }
@@ -167,9 +181,9 @@ function updateMoleGame(dt){
  const h=heroes[0];if(h){let mx=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+joy.x,my=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+joy.y;if(Math.hypot(mx,my)>.08){const n=norm(mx,my),speed=285;h.x+=n.x*speed*dt;h.y+=n.y*speed*dt;h.facing=n}h.x=clamp(h.x,105,895);h.y=clamp(h.y,175,850)}
  const moleDir={KeyJ:'left',KeyK:'up',KeyL:'down',KeyI:'right'};
  // タッチ入力はキューで保持し、短い連打やtouchend取りこぼしでも必ず処理する。
- while(moleInputQueue.length){const code=moleInputQueue.shift(),dir=moleDir[code];if(dir)hitMoles(dir);pressed.delete(code)}
- // キーボード入力は従来どおり押した瞬間を処理する。
- for(const code of ['KeyJ','KeyK','KeyL','KeyI'])if(pressed.has(code)){pressed.delete(code);hitMoles(moleDir[code])}
+ while(moleInputQueue.length){const input=moleInputQueue.shift(),code=typeof input==='string'?input:input.code,base=moleDir[code];if(base)hitMoles(resolveMoleAttackDir(base,typeof input==='string'?null:input));pressed.delete(code)}
+ // キーボード入力は押した瞬間の方向キーと組み合わせ、斜め攻撃へ変換する。
+ for(const code of ['KeyJ','KeyK','KeyL','KeyI'])if(pressed.has(code)){pressed.delete(code);const base=moleDir[code];hitMoles(resolveMoleAttackDir(base))}
  for(let i=moles.length-1;i>=0;i--){const m=moles[i];if(m.warn>0){m.warn-=dt;continue}m.life-=dt;if(m.life<=0)moles.splice(i,1)}
  while(moleSpawnTimer<=0&&moles.length<moleMaxActive()){spawnMole();moleSpawnTimer+=trainingElapsed<20?.72:trainingElapsed<40?.58:.46}
  updateUI();released.clear()

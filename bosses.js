@@ -246,26 +246,40 @@ function setupPrecisionShootingBattle(){
 function spawnPrecisionTarget(){
  const lanes=[790,850,910],x=lanes[Math.floor(Math.random()*lanes.length)]+rnd(-10,10),progress=Math.min(1,trainingElapsed/PRECISION_DURATION);
  const r=Math.random()<.22?34:42,speed=105+progress*42+rnd(-8,14);
- precisionTargets.push({x,y:145-r,r,vy:speed,life:9,wobble:rnd(0,Math.PI*2)})
+ precisionTargets.push({x,y:145-r,r,vy:speed,life:30,wobble:rnd(0,Math.PI*2)})
 }
 let precisionVolleyId=0;
 function firePrecisionBullet(){
- if(precisionFireCd>0||!heroes[0])return;const h=heroes[0],type=h.type;
- // 横一列ではなく進行方向へ間隔を空ける。先頭弾が必ず先に的へ届く。
- const count=type==='mage'?2:3,speed=type==='archmage'?680:type==='ninja'?700:type==='fox'?720:560;
- const radius=type==='archmage'?13:type==='mage'?12:10,kind=(type==='ninja'||type==='fox')?'shuriken':'fire',gap=42,id=++precisionVolleyId;
- for(let i=0;i<count;i++)precisionBullets.push({x:h.x+42-i*gap,y:h.y-8,vx:speed,vy:0,r:radius,life:1.7,ownerType:type,type:kind,volleyId:id,order:i,volleySize:count});
- precisionFireCd=type==='archmage'?.62:type==='mage'?.72:type==='fox'?.52:.82;h.attackAnim=.12
+ if(precisionFireCd>0||!heroes[0])return;const h=heroes[0],type=h.type,id=++precisionVolleyId;
+ // 射撃訓練専用の個性：魔法使いは狭い2方向＋燃焼、アークメイジは3方向フリーズ、忍者は時間差3連、白狐忍は高速3方向。
+ const specs={
+  mage:{angles:[-.075,.075],speed:575,r:12,cd:.72,kind:'fire'},
+  archmage:{angles:[-.18,0,.18],speed:640,r:13,cd:.68,kind:'freeze'},
+  ninja:{angles:[0,0,0],speed:700,r:10,cd:.82,kind:'shuriken',delays:[0,.105,.21]},
+  fox:{angles:[-.17,0,.17],speed:790,r:10,cd:.50,kind:'shuriken'}
+ },sp=specs[type]||specs.mage;
+ sp.angles.forEach((a,i)=>precisionBullets.push({x:h.x+42,y:h.y-8,vx:Math.cos(a)*sp.speed,vy:Math.sin(a)*sp.speed,r:sp.r,life:1.8,ownerType:type,type:sp.kind,volleyId:id,order:i,delay:sp.delays?sp.delays[i]:0}));
+ precisionFireCd=sp.cd;h.attackAnim=.12
 }
 function precisionHitScore(distance,r){const q=distance/r;return q<=.18?100:q<=.48?50:20}
+function addPrecisionScore(t,points,label,color,x=t.x,y=t.y){
+ precisionScore+=points;precisionCombo++;t.hitFlash=.16;t.hitCount=(t.hitCount||0)+1;
+ precisionJudgeFx.push({x:x-52,y:y-22-(t.hitCount%3)*22,text:`${label} +${points}`,color,life:.75});
+}
 function updatePrecisionShootingGame(dt){
  trainingElapsed+=dt;precisionSpawnTimer-=dt;precisionFireCd=Math.max(0,precisionFireCd-dt);
  if(trainingElapsed>=PRECISION_DURATION){trainingElapsed=PRECISION_DURATION;finishPrecisionShootingTraining();return}
  const h=heroes[0];if(h){let my=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+joy.y;if(Math.abs(my)>.08)h.y+=Math.sign(my)*260*dt;h.x=175;h.y=clamp(h.y,190,810);h.facing={x:1,y:0}}
  if(pressed.has('KeyJ')){pressed.delete('KeyJ');firePrecisionBullet()}
  while(precisionSpawnTimer<=0){if(precisionTargets.length<5)spawnPrecisionTarget();precisionSpawnTimer+=Math.max(.72,1.12-trainingElapsed*.004)}
- for(let i=precisionBullets.length-1;i>=0;i--){const b=precisionBullets[i];b.life-=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.life<=0||b.x>965){precisionBullets.splice(i,1);continue}let hit=false;for(let j=precisionTargets.length-1;j>=0;j--){const t=precisionTargets[j],d=Math.hypot(b.x-t.x,b.y-t.y);if(d<b.r+t.r){t.hitOrders=t.hitOrders||new Set();const hitKey=b.volleyId+':'+b.order;if(t.hitOrders.has(hitKey))continue;t.hitOrders.add(hitKey);const points=precisionHitScore(d,t.r),label=points===100?'PERFECT':points===50?'GOOD':'HIT',color=points===100?'#ffe36b':points===50?'#9fe8ff':'#ffffff';precisionScore+=points;precisionCombo++;t.hitFlash=.16;t.hitCount=(t.hitCount||0)+1;t.requiredHits=Math.max(t.requiredHits||1,b.volleySize||1);precisionJudgeFx.push({x:t.x-58,y:t.y-(t.hitCount-1)*28,text:`${label} +${points}`,color,life:.75});burst(b.x,b.y,color,10,145);precisionBullets.splice(i,1);hit=true;if(t.hitCount>=t.requiredHits){burst(t.x,t.y,color,18,210);precisionTargets.splice(j,1)}break}}if(hit)continue}
- for(let i=precisionTargets.length-1;i>=0;i--){const t=precisionTargets[i];t.life-=dt;t.hitFlash=Math.max(0,(t.hitFlash||0)-dt);t.wobble+=dt*1.8;t.y+=t.vy*dt;t.x+=Math.sin(t.wobble)*2*dt;if(t.y>865||t.life<=0){precisionTargets.splice(i,1);precisionCombo=0}}
+ for(let i=precisionBullets.length-1;i>=0;i--){const b=precisionBullets[i];b.life-=dt;if(b.delay>0){b.delay-=dt;continue}b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.life<=0||b.x>965||b.y<120||b.y>930){precisionBullets.splice(i,1);continue}let hit=false;for(let j=precisionTargets.length-1;j>=0;j--){const t=precisionTargets[j],d=Math.hypot(b.x-t.x,b.y-t.y);if(d<b.r+t.r){t.hitOrders=t.hitOrders||new Set();const hitKey=b.volleyId+':'+b.order;if(t.hitOrders.has(hitKey))continue;t.hitOrders.add(hitKey);const points=precisionHitScore(d,t.r),label=points===100?'PERFECT':points===50?'GOOD':'HIT',color=points===100?'#ffe36b':points===50?'#9fe8ff':'#ffffff';addPrecisionScore(t,points,label,color,b.x,b.y);burst(b.x,b.y,color,10,145);
+   if(b.ownerType==='mage'){t.burnTicks=(t.burnTicks||[]);t.burnTicks.push({time:.34,points});t.burnFlash=.7}
+   else if(b.ownerType==='archmage'){t.freezeTime=Math.max(t.freezeTime||0,.48);t.freezeFlash=.65}
+   precisionBullets.splice(i,1);hit=true;break}}if(hit)continue}
+ for(let i=precisionTargets.length-1;i>=0;i--){const t=precisionTargets[i];t.life-=dt;t.hitFlash=Math.max(0,(t.hitFlash||0)-dt);t.burnFlash=Math.max(0,(t.burnFlash||0)-dt);t.freezeFlash=Math.max(0,(t.freezeFlash||0)-dt);t.wobble+=dt*1.8;
+  if(t.burnTicks){for(let k=t.burnTicks.length-1;k>=0;k--){const burn=t.burnTicks[k];burn.time-=dt;if(burn.time<=0){addPrecisionScore(t,burn.points,'BURN','#ff9a55');burst(t.x,t.y,'#ff7a35',7,90);t.burnTicks.splice(k,1)}}}
+  if((t.freezeTime||0)>0)t.freezeTime=Math.max(0,t.freezeTime-dt);else t.y+=t.vy*dt;
+  t.x+=Math.sin(t.wobble)*2*dt;if(t.y>865){precisionTargets.splice(i,1);precisionCombo=0}}
  for(let i=precisionJudgeFx.length-1;i>=0;i--){const f=precisionJudgeFx[i];f.life-=dt;f.y-=26*dt;if(f.life<=0)precisionJudgeFx.splice(i,1)}
  updateUI();released.clear()
 }

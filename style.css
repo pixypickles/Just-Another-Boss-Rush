@@ -354,7 +354,7 @@
 #trainingPrecisionPlay.trainingChallengeButton{border-color:#ffd66b;background:linear-gradient(180deg,#8a6420,#49330f);box-shadow:0 8px 0 #2e2008,0 14px 30px #ffc84a2b;color:#fff}
 
 /* v87: make the training-ground entrance easier to notice without overpowering the boss-room button */
-#trainingMenuButton:not(:disabled){min-width:132px;padding:12px 20px;border:2px solid #84e8ff;border-radius:12px;background:linear-gradient(180deg,#eefcff,#b9efff);color:#092536;font-weight:900;font-size:17px;box-shadow:0 5px 0 #27758c,0 0 20px #4edcff55;cursor:pointer;transition:transform .12s ease,filter .12s ease,box-shadow .12s ease}
+#trainingMenuButton:not(:disabled){min-width:158px;padding:15px 25px;border:3px solid #8deaff;border-radius:18px;background:linear-gradient(180deg,#e9fbff 0%,#82dcf4 58%,#42b9dc 100%);color:#072739;font-weight:1000;font-size:20px;letter-spacing:.05em;text-shadow:0 1px #fff9;box-shadow:0 7px 0 #17647c,0 0 0 4px #49d9ff22,0 0 30px #35d3ff88;cursor:pointer;transition:transform .12s ease,filter .12s ease,box-shadow .12s ease}
 #trainingMenuButton:not(:disabled):hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 6px 0 #27758c,0 0 25px #4edcff77}
 #trainingMenuButton:not(:disabled):active{transform:translateY(4px);box-shadow:0 1px 0 #27758c,0 0 15px #4edcff55}
 #trainingMenuButton:disabled{min-width:132px;padding:12px 18px;border-radius:12px}

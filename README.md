@@ -61,3 +61,8 @@ v75 changes:
 - Fixed intermittent A-button input in intercept and precision shooting training.
 - Intercept A patterns/cooldowns now match each shooting character's normal A attack.
 - Precision volleys fly in a lead-follow formation; every bullet can score and targets remain until the volley hits are resolved.
+
+
+## v89
+- 射撃訓練のアークメイジの3方向フリーズ弾を貫通化。
+- 同じフリーズ弾は同じ的へ1回だけ命中し、重なった複数の的を順番に凍結・加点できる。

@@ -138,6 +138,43 @@ function setupBattle(){
 }
 function bossDefeated(){resetCombatInput();if(foxMode){running=false;let msg='白狐忍・三影を撃破！';if(!isFoxUnlocked()){saveFoxUnlock();unlockFoxChoice();msg+=' 白狐忍が仲間になった！'}notice(msg,'#d7f7ff',3600);document.getElementById('loadStatus').textContent=msg;setTimeout(()=>ui.start.style.display='grid',1600);return}if(bushinMode){running=false;let msg='武神撃破！ 真の強者の証を得た！';if(!isPlayableBushinUnlocked()){savePlayableBushinUnlock();unlockBushinChoice();msg+=' 武神はその強さを認め、秘伝の武術を解放した！ 武神が仲間になった！'}notice(msg,'#fff08a',3800);document.getElementById('loadStatus').textContent=msg;setTimeout(()=>ui.start.style.display='grid',1600);return}if(bossIndex===1&&!isDraculaUnlocked()&&selectedTypes.length>0&&selectedTypes.every(t=>t==='healer'||t==='highpriest')){saveDraculaUnlock();unlockDraculaChoice();notice('ドラキュラ 解放！ 聖なる力により魔王による呪いが解けた！','#f3a1bc',1800);document.getElementById('loadStatus').textContent='ドラキュラが解放されました！'}for(const h of heroes)h.chargeB=0;awakeningSoloCarry=null;if(awakenedMode){const h=heroes.find(x=>!x.dead);if(h&&((h.type==='magicblade'&&h.demonMode>0)||(h.type==='ninja'&&h.cloneTime>0)||(h.type==='runemage'&&h.runeOverload>0)||(h.type==='highpriest'&&h.divineMode>0)||(h.type==='qigong'&&h.qigongFocus>0)||(h.type==='dragonknight'&&h.dragonBreath>0)||(h.type==='dracula'&&h.dominationTime>0)))awakeningSoloCarry={type:h.type}}transition=2.2;notice('BOSS DEFEATED!','#fff08a',1500);for(const h of heroes)if(!h.dead)h.heal(h.maxHp*.24)}
 
+
+function setupMoleBattle(){
+ resetCombatInput();trainingPartySize=1;selectedTypes=[selectedTypes[0]];selectedStartType=selectedTypes[0];
+ heroes=[new Hero(selectedTypes[0],500,525)];heroes.forEach(validateHeroSkills);heroIndex=0;
+ boss=createTrainingProxy();boss.x=500;boss.y=525;
+ shots.length=particles.length=walls.length=slashes.length=fistTrails.length=minions.length=lasers.length=holyFx.length=holyDots.length=runes.length=0;
+ trainingKills=0;trainingElapsed=0;trainingFinished=false;moleFinished=false;moleScore=0;moleCombo=0;moleSpawnTimer=.45;moleAttackFx=0;moleAttackDir='';moles=[];timeStop=0;
+ updateUI();notice('モグラ叩き――A左・B上・C下・D右！','#ffd88b',1800)
+}
+function moleMaxActive(){return trainingElapsed<20?1:trainingElapsed<40?2:3}
+function moleVisibleTime(){return trainingElapsed<20?1.0:trainingElapsed<40?.78:trainingElapsed<50?.62:.48}
+function spawnMole(){
+ const active=new Set(moles.map(m=>m.hole)),choices=MOLE_HOLES.map((_,i)=>i).filter(i=>!active.has(i));if(!choices.length)return;
+ const hole=choices[Math.floor(Math.random()*choices.length)],r=Math.random(),kind=r<.05?'king':r<.2?'gold':'normal';
+ moles.push({hole,kind,life:moleVisibleTime(),max:moleVisibleTime(),warn:.15,hit:false})
+}
+function moleDirectionForHole(i){const [x,y]=MOLE_HOLES[i],dx=x-500,dy=y-525;if(Math.abs(dx)>Math.abs(dy))return dx<0?'left':'right';return dy<0?'up':'down'}
+function hitMoles(dir){
+ moleAttackDir=dir;moleAttackFx=.13;let hit=0;
+ for(let i=moles.length-1;i>=0;i--){const m=moles[i];if(m.warn>0||m.hit||moleDirectionForHole(m.hole)!==dir)continue;m.hit=true;const pts=m.kind==='king'?5:m.kind==='gold'?3:1;moleScore+=pts;moleCombo++;hit++;const [x,y]=MOLE_HOLES[m.hole];burst(x,y,m.kind==='king'?'#fff08a':m.kind==='gold'?'#ffd75c':'#d6b07a',12,180);particles.push({x,y:y-45,vx:0,vy:-65,r:8,c:'#ffffff',life:.45,max:.45,text:'+'+pts});moles.splice(i,1)}
+ if(!hit)moleCombo=0
+}
+function updateMoleGame(dt){
+ trainingElapsed+=dt;moleSpawnTimer-=dt;moleAttackFx=Math.max(0,moleAttackFx-dt);
+ if(trainingElapsed>=MOLE_DURATION){trainingElapsed=MOLE_DURATION;finishMoleTraining();return}
+ if(pressed.has('KeyJ')){pressed.delete('KeyJ');hitMoles('left')}
+ if(pressed.has('KeyK')){pressed.delete('KeyK');hitMoles('up')}
+ if(pressed.has('KeyL')){pressed.delete('KeyL');hitMoles('down')}
+ if(pressed.has('KeyI')){pressed.delete('KeyI');hitMoles('right')}
+ for(let i=moles.length-1;i>=0;i--){const m=moles[i];if(m.warn>0){m.warn-=dt;continue}m.life-=dt;if(m.life<=0)moles.splice(i,1)}
+ while(moleSpawnTimer<=0&&moles.length<moleMaxActive()){spawnMole();moleSpawnTimer+=trainingElapsed<20?.58:trainingElapsed<40?.42:.3}
+ updateUI();released.clear()
+}
+function finishMoleTraining(){
+ if(moleFinished)return;moleFinished=true;trainingFinished=true;running=false;resetCombatInput();const type=heroes[0].type,ranks=saveMoleScore(moleScore,type),rank=ranks.findIndex(r=>r.score===moleScore)+1;
+ const msg=`TIME UP!! ${moleScore}点${rank>0?' / TOP '+rank:''}`;notice(msg,'#fff08a',4200);document.getElementById('loadStatus').textContent=`モグラ叩き ${moleScore}点　${heroInfo[type]?.name||type}`;if(window.refreshTrainingMenu)window.refreshTrainingMenu();setTimeout(()=>ui.start.style.display='grid',1700)
+}
 // v68 training ground
 function createTrainingProxy(){
  return {kind:'training',name:'修行場',x:500,y:500,r:1,hp:100,maxHp:100,dead:false,inv:0,volley:0,vx:0,vy:0,

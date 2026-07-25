@@ -2,7 +2,7 @@ document.querySelectorAll('.tb').forEach(b=>{const code=b.dataset.key;const down
 addEventListener('blur',()=>resetCombatInput());document.addEventListener('visibilitychange',()=>{if(document.hidden)resetCombatInput()});
 const playButton=document.getElementById('play');
 const modeSelect=document.getElementById('partyMode'),partyChoices=[...document.querySelectorAll('.partyChoice')],startChoices=[...document.querySelectorAll('input[name="startHero"]')];
-const trainingPlay=document.getElementById('trainingPlay'),trainingLimitPlay=document.getElementById('trainingLimitPlay'),trainingRank=document.getElementById('trainingRank'),trainingMenuButton=document.getElementById('trainingMenuButton'),trainingPanel=document.getElementById('trainingPanel'),trainingBack=document.getElementById('trainingBack'),mainActions=document.getElementById('mainActions'),trainingPartyChoices=document.getElementById('trainingPartyChoices'),trainingPartySummary=document.getElementById('trainingPartySummary');
+const trainingPlay=document.getElementById('trainingPlay'),trainingLimitPlay=document.getElementById('trainingLimitPlay'),trainingMolePlay=document.getElementById('trainingMolePlay'),trainingRank=document.getElementById('trainingRank'),trainingMenuButton=document.getElementById('trainingMenuButton'),trainingPanel=document.getElementById('trainingPanel'),trainingBack=document.getElementById('trainingBack'),mainActions=document.getElementById('mainActions'),trainingPartyChoices=document.getElementById('trainingPartyChoices'),trainingPartySummary=document.getElementById('trainingPartySummary');
 let trainingSelectedTypes=[];
 const heroUnlockConditions={
  highpriest:'ハイプリーストはヒーラー単独クリアで解放されます',
@@ -24,14 +24,15 @@ function refreshTrainingPartyUi(){
  const unlocked=isTrainingUnlocked(),count=trainingSelectedTypes.length;
  trainingPartySummary.textContent=count?`${count}人部門：${trainingSelectedTypes.map(t=>heroInfo[t]?.name||t).join('・')}`:'参加キャラクターを選んでください';
  [...trainingPartyChoices.querySelectorAll('.trainingPartyChoice')].forEach(b=>{const selected=trainingSelectedTypes.includes(b.dataset.hero);b.classList.toggle('selected',selected);b.classList.toggle('locked',!selected&&count>=3)});
- trainingPlay.disabled=!unlocked||count<1||count>3;trainingLimitPlay.disabled=!unlocked||count<1||count>3;
+ trainingPlay.disabled=!unlocked||count<1||count>3;trainingLimitPlay.disabled=!unlocked||count<1||count>3;trainingMolePlay.disabled=!unlocked||!isMoleUnlocked()||count!==1||!MOLE_ALLOWED.includes(trainingSelectedTypes[0]);
 }
 function buildTrainingPartyChoices(){
  trainingPartyChoices.innerHTML='';
  for(const source of partyChoices){const b=document.createElement('button');b.type='button';b.className='trainingPartyChoice';b.dataset.hero=source.dataset.hero;b.textContent=heroInfo[source.dataset.hero]?.name||source.textContent.replace('（未解放）','');const locked=source.classList.contains('unlockLocked');b.classList.toggle('unlockLocked',locked);if(locked)b.textContent+='（未解放）';b.addEventListener('click',()=>{const type=b.dataset.hero;if(b.classList.contains('unlockLocked')){trainingPartySummary.textContent=heroUnlockCondition(type);return}const i=trainingSelectedTypes.indexOf(type);if(i>=0)trainingSelectedTypes.splice(i,1);else if(trainingSelectedTypes.length<3)trainingSelectedTypes.push(type);refreshTrainingPartyUi()});trainingPartyChoices.appendChild(b)}
  refreshTrainingPartyUi();
 }
-function refreshTrainingMenu(){const unlocked=isTrainingUnlocked();trainingMenuButton.disabled=!unlocked;trainingMenuButton.textContent=unlocked?'修行場':'修行場（通常クリアで解放）';trainingPlay.innerHTML='<strong>100体撃破タイムアタック</strong><span>100体を倒すまでの最速タイムを競う</span>';trainingLimitPlay.innerHTML='<strong>60秒・制限時間撃破</strong><span>覚醒無双で60秒間の撃破数を競う</span>';trainingRank.innerHTML=trainingRankHtml('100体撃破',readTrainingRankBook())+trainingRankHtml('60秒撃破',readTrainingScoreBook(),true);buildTrainingPartyChoices()}
+function moleRankHtml(){const book=readMoleScoreBook();return `<b>モグラ叩き キャラ別 TOP 3</b>`+MOLE_ALLOWED.map(type=>{const ranks=book[type]||[];return `<div class="rankSection"><div class="rankTitle">${heroInfo[type]?.name||type}</div>${ranks.length?ranks.map((r,i)=>`<div class="rankRow"><span>${i+1}位</span><span></span><strong>${r.score}点</strong></div>`).join(''):'<div>記録はまだありません。</div>'}</div>`}).join('')}
+function refreshTrainingMenu(){const unlocked=isTrainingUnlocked();trainingMenuButton.disabled=!unlocked;trainingMenuButton.textContent=unlocked?'修行場':'修行場（通常クリアで解放）';trainingPlay.innerHTML='<strong>100体撃破タイムアタック</strong><span>100体を倒すまでの最速タイムを競う</span>';trainingLimitPlay.innerHTML='<strong>60秒・制限時間撃破</strong><span>覚醒無双で60秒間の撃破数を競う</span>';trainingMolePlay.innerHTML=`<strong>モグラ叩き${isMoleUnlocked()?'':'（100体撃破クリアで解放）'}</strong><span>ナイト・魔剣士・竜騎士・武神の1人専用</span>`;trainingRank.innerHTML=trainingRankHtml('100体撃破',readTrainingRankBook())+trainingRankHtml('60秒撃破',readTrainingScoreBook(),true)+moleRankHtml();buildTrainingPartyChoices()}
 refreshTrainingMenu();
 
 function openTrainingPanel(){if(!isTrainingUnlocked())return;if(!trainingSelectedTypes.length){trainingSelectedTypes=partyChoices.filter(b=>b.classList.contains('selected')&&!b.disabled).slice(0,3).map(b=>b.dataset.hero);if(!trainingSelectedTypes.length)trainingSelectedTypes=['knight']}buildTrainingPartyChoices();mainActions.hidden=true;trainingPanel.hidden=false;document.getElementById('loadStatus').textContent='修行場：参加キャラクターを1〜3人選び、種目を選択してください。'}
@@ -174,12 +175,13 @@ function startTraining(e,challenge='time'){
  const need=trainingSelectedTypes.length;
  if(need<1||need>3){document.getElementById('loadStatus').textContent='修行場用にキャラクターを1〜3人選んでください。';return}
  selectedTypes=[...trainingSelectedTypes];selectedStartType=selectedTypes[0];trainingPartySize=need;trainingChallenge=challenge;
- startingGame=true;trainingPlay.disabled=true;trainingLimitPlay.disabled=true;document.getElementById('loadStatus').textContent=`${need}人部門の${challenge==='limit'?'60秒撃破':'100体撃破'}を準備しています…`;
- const launch=()=>{try{trainingPanel.hidden=true;mainActions.hidden=false;partyDeaths=0;awakeningSoloCarry=null;trainingMode=true;bushinMode=foxMode=hardMode=false;difficultyMode='normal';enemyHpMultiplier=enemyAttackMultiplier=1;difficultyLabel='';awakenedMode=trainingChallenge==='limit';bossIndex=0;transition=0;setupTrainingBattle();running=true;last=performance.now();ui.notice.style.opacity=0;ui.start.style.display='none';startingGame=false;refreshTrainingMenu()}catch(err){running=false;startingGame=false;ui.start.style.display='grid';refreshTrainingMenu();document.getElementById('loadStatus').textContent='修行場開始エラー: '+(err?.message||err);console.error(err)}};
+ startingGame=true;trainingPlay.disabled=true;trainingLimitPlay.disabled=true;trainingMolePlay.disabled=true;document.getElementById('loadStatus').textContent=challenge==='mole'?'モグラ叩きを準備しています…':`${need}人部門の${challenge==='limit'?'60秒撃破':'100体撃破'}を準備しています…`;
+ const launch=()=>{try{trainingPanel.hidden=true;mainActions.hidden=false;partyDeaths=0;awakeningSoloCarry=null;trainingMode=true;bushinMode=foxMode=hardMode=false;difficultyMode='normal';enemyHpMultiplier=enemyAttackMultiplier=1;difficultyLabel='';awakenedMode=trainingChallenge==='limit';bossIndex=0;transition=0;if(trainingChallenge==='mole')setupMoleBattle();else setupTrainingBattle();running=true;last=performance.now();ui.notice.style.opacity=0;ui.start.style.display='none';startingGame=false;refreshTrainingMenu()}catch(err){running=false;startingGame=false;ui.start.style.display='grid';refreshTrainingMenu();document.getElementById('loadStatus').textContent='修行場開始エラー: '+(err?.message||err);console.error(err)}};
  if(selectedTypes.includes('mimic'))showMimicBuildScreen(launch,true);else launch()
 }
 trainingPlay.addEventListener('click',e=>startTraining(e,'time'));
 trainingLimitPlay.addEventListener('click',e=>startTraining(e,'limit'));
+trainingMolePlay.addEventListener('click',e=>{if(trainingSelectedTypes.length!==1||!MOLE_ALLOWED.includes(trainingSelectedTypes[0])){trainingPartySummary.textContent='モグラ叩きはナイト・魔剣士・竜騎士・武神から1人選んでください';return}startTraining(e,'mole')});
 window.refreshTrainingMenu=refreshTrainingMenu;
 
 ['click','pointerup','touchend'].forEach(type=>playButton.addEventListener(type,startGame,{passive:false}));

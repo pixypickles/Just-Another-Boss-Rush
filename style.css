@@ -346,3 +346,5 @@
 .trainingChallengeButton:disabled{filter:grayscale(.72);opacity:.42;cursor:not-allowed;box-shadow:none;transform:none}
 .mimicBossRow:only-child{grid-template-columns:minmax(180px,230px) 1fr 1fr;padding:18px 14px}.mimicBossRow:only-child>b{font-size:17px}
 @media(max-width:620px){.mimicBossRow:only-child{grid-template-columns:1fr 1fr}.mimicBossRow:only-child>b{grid-column:1/-1}.trainingChallengeButton{min-height:90px}}
+
+#trainingMolePlay.trainingChallengeButton{border-color:#e7b76688;background:linear-gradient(180deg,#745023,#3a2815);box-shadow:0 8px 0 #28190c,0 14px 30px #d89b3a2b;color:#fff}

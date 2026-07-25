@@ -5,6 +5,7 @@ function draw(){
  ctx.save();
  if(shake>0){ctx.translate(rnd(-shake,shake),rnd(-shake,shake));shake*=.84}
  drawArena();
+ if(trainingMode){for(let i=0;i<TRAINING_SPAWN_POINTS.length;i++){const [x,y]=TRAINING_SPAWN_POINTS[i],flash=trainingSpawnFlash[i]||0,pulse=1+flash*1.1;ctx.save();ctx.translate(x,y);ctx.scale(pulse,pulse);ctx.globalAlpha=.42+flash*.9;ctx.strokeStyle=flash>0?'#6f7680':'#050607';ctx.fillStyle='#00000055';ctx.lineWidth=flash>0?8:6;ctx.beginPath();ctx.arc(0,0,31,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-16,-16);ctx.lineTo(16,16);ctx.moveTo(16,-16);ctx.lineTo(-16,16);ctx.stroke();ctx.restore()}}
  if(!boss||!heroes.length){ctx.restore();ctx.globalAlpha=1;return}
  for(const r of runes){const p=.5+.5*Math.sin(r.pulse),col=r.kind==='fire'?'#ff6b35':r.kind==='ice'?'#74d4ff':'#ffe45c';ctx.save();ctx.translate(r.x,r.y);ctx.globalAlpha=.13+.07*p;ctx.strokeStyle=col;ctx.lineWidth=3;ctx.shadowBlur=8;ctx.shadowColor=col;ctx.beginPath();ctx.arc(0,0,r.r,0,Math.PI*2);ctx.stroke();ctx.rotate(r.pulse*.18);ctx.beginPath();for(let k=0;k<6;k++){const a=k*Math.PI/3;ctx.moveTo(Math.cos(a)*12,Math.sin(a)*12);ctx.lineTo(Math.cos(a)*r.r*.72,Math.sin(a)*r.r*.72)}ctx.stroke();ctx.restore()}
  for(const w of walls){

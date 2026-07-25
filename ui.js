@@ -2,9 +2,10 @@ document.querySelectorAll('.tb').forEach(b=>{const code=b.dataset.key;const down
 addEventListener('blur',()=>resetCombatInput());document.addEventListener('visibilitychange',()=>{if(document.hidden)resetCombatInput()});
 const playButton=document.getElementById('play');
 const modeSelect=document.getElementById('partyMode'),partyChoices=[...document.querySelectorAll('.partyChoice')],startChoices=[...document.querySelectorAll('input[name="startHero"]')];
-const trainingPlay=document.getElementById('trainingPlay'),trainingRank=document.getElementById('trainingRank');
-function refreshTrainingMenu(){const unlocked=isTrainingUnlocked();trainingPlay.disabled=!unlocked;trainingPlay.textContent=unlocked?'修行場：100体撃破':'修行場（通常クリアで解放）';const ranks=readTrainingRanks();trainingRank.innerHTML='<b>100体撃破 TOP 5</b>'+(ranks.length?ranks.map((r,i)=>`<div class="rankRow"><span>${i+1}位</span><span>${heroInfo[r.type]?.name||r.type}</span><strong>${formatTrainingTime(r.time)}</strong></div>`).join(''):'<div>記録はまだありません。</div>')}
+const trainingPlay=document.getElementById('trainingPlay'),trainingRank=document.getElementById('trainingRank'),trainingPartySizeSelect=document.getElementById('trainingPartySize');
+function refreshTrainingMenu(){const unlocked=isTrainingUnlocked();trainingPlay.disabled=!unlocked;trainingPartySizeSelect.disabled=!unlocked;trainingPlay.textContent=unlocked?'修行場：100体撃破':'修行場（通常クリアで解放）';const book=readTrainingRankBook();trainingRank.innerHTML='<b>100体撃破 部門別 TOP 5</b>'+[1,2,3].map(size=>{const ranks=book[size]||[];return `<div class="rankSection"><div class="rankTitle">${size}人部門</div>${ranks.length?ranks.map((r,i)=>{const types=Array.isArray(r.types)?r.types:[r.type];return `<div class="rankRow"><span>${i+1}位</span><span class="rankParty">${types.map(t=>heroInfo[t]?.name||t).join('・')}</span><strong>${formatTrainingTime(r.time)}</strong></div>`}).join(''):'<div>記録はまだありません。</div>'}</div>`}).join('')}
 refreshTrainingMenu();
+trainingPartySizeSelect.addEventListener('change',()=>{const need=Number(trainingPartySizeSelect.value)||1;if(['1','2','3'].includes(String(need))){modeSelect.value=String(need);modeSelect.dispatchEvent(new Event('change'))}});
 function addBushinOptions(){if([...modeSelect.options].some(o=>o.value==='bushin3'))return;for(const n of [3,2,1]){const o=document.createElement('option');o.value='bushin'+n;o.textContent=`武神挑戦モード（${n}人）`;modeSelect.appendChild(o)}}
 function modeCount(){const v=modeSelect.value;return v==='fox3'?3:v.startsWith('bushin')?Number(v.slice(-1)):v==='awakening'?1:Number(v)}
 function addFoxModeOption(){if([...modeSelect.options].some(o=>o.value==='fox3'))return;const o=document.createElement('option');o.value='fox3';o.textContent='キツネ対戦モード（3人限定）';modeSelect.appendChild(o)}
@@ -122,14 +123,14 @@ function startGame(e){
 window.__bossRushStart=startGame;
 
 function startTraining(e){
- if(e){e.preventDefault?.();e.stopPropagation?.()}
+ e.preventDefault();
  if(!isTrainingUnlocked()||startingGame)return;
- syncPartySetup();
- const checked=startChoices.find(r=>r.checked&&!r.disabled),fallback=partyChoices.find(b=>b.classList.contains('selected')&&!b.disabled);
- selectedStartType=checked?.value||fallback?.dataset.hero||'knight';selectedTypes=[selectedStartType];
- startingGame=true;trainingPlay.disabled=true;document.getElementById('loadStatus').textContent='修行場を準備しています…';
+ const need=Number(trainingPartySizeSelect.value)||1;
+ if(selectedTypes.length!==need){modeSelect.value=String(need);modeSelect.dispatchEvent(new Event('change'));document.getElementById('loadStatus').textContent=`修行場用にキャラクターを${need}人選んでください。`;return}
+ trainingPartySize=need;
+ startingGame=true;trainingPlay.disabled=true;document.getElementById('loadStatus').textContent=`${need}人部門の修行場を準備しています…`;
  const launch=()=>{try{partyDeaths=0;awakeningSoloCarry=null;trainingMode=true;bushinMode=foxMode=awakenedMode=false;bossIndex=0;transition=0;setupTrainingBattle();running=true;last=performance.now();ui.notice.style.opacity=0;ui.start.style.display='none';startingGame=false;refreshTrainingMenu()}catch(err){running=false;startingGame=false;ui.start.style.display='grid';refreshTrainingMenu();document.getElementById('loadStatus').textContent='修行場開始エラー: '+(err?.message||err);console.error(err)}};
- requestAnimationFrame(launch)
+ if(selectedTypes.includes('mimic'))showMimicBuildScreen(launch);else launch()
 }
 trainingPlay.addEventListener('click',startTraining);
 window.refreshTrainingMenu=refreshTrainingMenu;

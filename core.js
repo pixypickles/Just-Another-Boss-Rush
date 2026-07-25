@@ -1,9 +1,10 @@
 'use strict';
 const canvas=document.getElementById('game'),ctx=canvas.getContext('2d'),W=1000,H=1000;
 const keys=new Set(),pressed=new Set(),released=new Set();let running=false,last=0,heroIndex=0,bossIndex=0,transition=0,shake=0,joy={x:0,y:0,id:null};let selectedTypes=['knight','mage','healer'],selectedStartType='knight',awakenedMode=false,bushinMode=false,foxMode=false,trainingMode=false,partyDeaths=0,awakeningSoloCarry=null,dInputBuffer=0;
-let trainingKills=0,trainingElapsed=0,trainingSpawnTimer=0,trainingFinished=false;
+let trainingKills=0,trainingElapsed=0,trainingSpawnTimer=0,trainingFinished=false,trainingPartySize=1;
+const TRAINING_SPAWN_POINTS=[[145,190],[855,190],[145,825],[855,825]],trainingSpawnFlash=[0,0,0,0];
 let mimicBattleBuild=null;
-const AWAKEN_UNLOCK_KEY='jabrAwakeningUnlockedV1',MONK_UNLOCK_KEY='jabrMonkUnlockedV1',HIGHPRIEST_UNLOCK_KEY='jabrHighPriestUnlockedV2',MAGICBLADE_UNLOCK_KEY='jabrMagicbladeUnlockedV1',RUNEMAGE_UNLOCK_KEY='jabrRunemageUnlockedV1',QIGONG_UNLOCK_KEY='jabrQigongUnlockedV1',NINJA_UNLOCK_KEY='jabrNinjaUnlockedV1',DRAGONKNIGHT_UNLOCK_KEY='jabrDragonKnightUnlockedV1',DRACULA_UNLOCK_KEY='jabrPlayableDraculaUnlockedV1',MIMIC_UNLOCK_KEY='jabrMimicUnlockedV1',BUSHIN_UNLOCK_KEY='jabrBushinChallengeUnlockedV1',PLAYABLE_BUSHIN_UNLOCK_KEY='jabrPlayableBushinUnlockedV1',FOX_MODE_UNLOCK_KEY='jabrFoxBattleUnlockedV1',FOX_UNLOCK_KEY='jabrPlayableFoxUnlockedV1',TRAINING_UNLOCK_KEY='jabrTrainingUnlockedV1',TRAINING_RANK_KEY='jabrTraining100Top5V1';
+const AWAKEN_UNLOCK_KEY='jabrAwakeningUnlockedV1',MONK_UNLOCK_KEY='jabrMonkUnlockedV1',HIGHPRIEST_UNLOCK_KEY='jabrHighPriestUnlockedV2',MAGICBLADE_UNLOCK_KEY='jabrMagicbladeUnlockedV1',RUNEMAGE_UNLOCK_KEY='jabrRunemageUnlockedV1',QIGONG_UNLOCK_KEY='jabrQigongUnlockedV1',NINJA_UNLOCK_KEY='jabrNinjaUnlockedV1',DRAGONKNIGHT_UNLOCK_KEY='jabrDragonKnightUnlockedV1',DRACULA_UNLOCK_KEY='jabrPlayableDraculaUnlockedV1',MIMIC_UNLOCK_KEY='jabrMimicUnlockedV1',BUSHIN_UNLOCK_KEY='jabrBushinChallengeUnlockedV1',PLAYABLE_BUSHIN_UNLOCK_KEY='jabrPlayableBushinUnlockedV1',FOX_MODE_UNLOCK_KEY='jabrFoxBattleUnlockedV1',FOX_UNLOCK_KEY='jabrPlayableFoxUnlockedV1',TRAINING_UNLOCK_KEY='jabrTrainingUnlockedV1',TRAINING_RANK_KEY='jabrTraining100Top5V2',TRAINING_LEGACY_RANK_KEY='jabrTraining100Top5V1';
 function isAwakeningUnlocked(){try{return localStorage.getItem(AWAKEN_UNLOCK_KEY)==='1'}catch(e){return false}}
 function saveAwakeningUnlock(){try{localStorage.setItem(AWAKEN_UNLOCK_KEY,'1')}catch(e){}}
 function isMonkUnlocked(){try{return localStorage.getItem(MONK_UNLOCK_KEY)==='1'}catch(e){return false}}
@@ -37,8 +38,9 @@ function saveFoxUnlock(){try{localStorage.setItem(FOX_UNLOCK_KEY,'1')}catch(e){}
 
 function isTrainingUnlocked(){try{return localStorage.getItem(TRAINING_UNLOCK_KEY)==='1'}catch(e){return false}}
 function saveTrainingUnlock(){try{localStorage.setItem(TRAINING_UNLOCK_KEY,'1')}catch(e){}}
-function readTrainingRanks(){try{const v=JSON.parse(localStorage.getItem(TRAINING_RANK_KEY)||'[]');return Array.isArray(v)?v.slice(0,5):[]}catch(e){return []}}
-function saveTrainingRank(time,type){const ranks=readTrainingRanks();ranks.push({time:Math.round(time*1000)/1000,type});ranks.sort((a,b)=>a.time-b.time);try{localStorage.setItem(TRAINING_RANK_KEY,JSON.stringify(ranks.slice(0,5)))}catch(e){}return ranks.slice(0,5)}
+function readTrainingRankBook(){try{let v=JSON.parse(localStorage.getItem(TRAINING_RANK_KEY)||'null');if(!v||Array.isArray(v))v={1:[],2:[],3:[]};for(const n of [1,2,3])if(!Array.isArray(v[n]))v[n]=[];if(!v[1].length){const legacy=JSON.parse(localStorage.getItem(TRAINING_LEGACY_RANK_KEY)||'[]');if(Array.isArray(legacy))v[1]=legacy.slice(0,5).map(r=>({time:r.time,types:[r.type]}))}return v}catch(e){return {1:[],2:[],3:[]}}}
+function readTrainingRanks(size=trainingPartySize){return readTrainingRankBook()[size].slice(0,5)}
+function saveTrainingRank(time,types){const size=Math.max(1,Math.min(3,types.length)),book=readTrainingRankBook(),ranks=book[size];ranks.push({time:Math.round(time*1000)/1000,types:[...types]});ranks.sort((a,b)=>a.time-b.time);book[size]=ranks.slice(0,5);try{localStorage.setItem(TRAINING_RANK_KEY,JSON.stringify(book))}catch(e){}return book[size]}
 function formatTrainingTime(sec){const m=Math.floor(sec/60),s=Math.floor(sec%60),cs=Math.floor((sec-Math.floor(sec))*100);return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(cs).padStart(2,'0')}`}
 
 function enemyDamage(n){return awakenedMode?n*1.25:n}

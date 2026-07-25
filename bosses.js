@@ -146,24 +146,30 @@ function createTrainingProxy(){
   hurt(n){const t=minions.reduce((best,m)=>!best||Math.hypot(m.x-this.x,m.y-this.y)<Math.hypot(best.x-this.x,best.y-this.y)?m:best,null);if(!t)return false;t.hp-=n;return true}
  }
 }
+function trainingMinionLimit(){return trainingPartySize===3?16:trainingPartySize===2?12:8}
+function trainingHpMultiplier(){return trainingPartySize===3?2:trainingPartySize===2?1.5:1}
 function spawnTrainingMinion(){
- if(!trainingMode||trainingFinished||trainingKills+minions.length>=100||minions.length>=8)return;
- const points=[[145,190],[855,190],[145,825],[855,825]],p=points[Math.floor(Math.random()*points.length)],strong=Math.random()<Math.min(.32,.08+trainingKills*.0022),growth=Math.min(1,trainingKills/70),hp=Math.round(strong?(78+112*growth):(38+67*growth));
+ const limit=trainingMinionLimit();
+ if(!trainingMode||trainingFinished||trainingKills+minions.length>=100||minions.length>=limit)return;
+ const pointIndex=Math.floor(Math.random()*TRAINING_SPAWN_POINTS.length),p=TRAINING_SPAWN_POINTS[pointIndex],strong=Math.random()<Math.min(.32,.08+trainingKills*.0022),growth=Math.min(1,trainingKills/70),baseHp=strong?(78+112*growth):(38+67*growth),hp=Math.round(baseHp*trainingHpMultiplier());
+ trainingSpawnFlash[pointIndex]=.38;
  minions.push({x:p[0]+rnd(-25,25),y:p[1]+rnd(-25,25),vx:0,vy:0,r:strong?27:21,hp,maxHp:hp,life:9999,cd:rnd(.35,.9),damage:strong?34:23,strong,training:true})
 }
 function setupTrainingBattle(){
  resetCombatInput();
- heroes=[new Hero(selectedTypes[0],500,545)];heroes.forEach(validateHeroSkills);heroIndex=0;
+ trainingPartySize=Math.max(1,Math.min(3,selectedTypes.length));
+ const starts=trainingPartySize===1?[[500,545]]:trainingPartySize===2?[[450,545],[550,545]]:[[410,565],[500,515],[590,565]];
+ heroes=selectedTypes.slice(0,trainingPartySize).map((type,i)=>new Hero(type,starts[i][0],starts[i][1]));heroes.forEach(validateHeroSkills);heroIndex=Math.max(0,heroes.findIndex(h=>h.type===selectedStartType));
  boss=createTrainingProxy();
  shots.length=particles.length=walls.length=slashes.length=fistTrails.length=minions.length=lasers.length=holyFx.length=holyDots.length=runes.length=0;
- trainingKills=0;trainingElapsed=0;trainingSpawnTimer=0;trainingFinished=false;
- for(let i=0;i<6;i++)spawnTrainingMinion();
- updateUI();notice('修行開始――手下100体を倒せ！','#9feaff',1500)
+ trainingKills=0;trainingElapsed=0;trainingSpawnTimer=0;trainingFinished=false;trainingSpawnFlash.fill(0);
+ const initial=trainingPartySize===3?12:trainingPartySize===2?9:6;for(let i=0;i<initial;i++)spawnTrainingMinion();
+ updateUI();notice(`修行開始――${trainingPartySize}人で手下100体を倒せ！`,'#9feaff',1500)
 }
 function finishTraining(){
  if(trainingFinished)return;trainingFinished=true;running=false;resetCombatInput();
- const h=heroes[0],ranks=saveTrainingRank(trainingElapsed,h.type),rank=ranks.findIndex(r=>r.type===h.type&&Math.abs(r.time-trainingElapsed)<.002)+1;
- const msg=`FINISH!! ${formatTrainingTime(trainingElapsed)}${rank>0?' / TOP '+rank:''}`;
- notice(msg,'#fff08a',4200);document.getElementById('loadStatus').textContent=`100体撃破 ${formatTrainingTime(trainingElapsed)}　${heroInfo[h.type].name}`;
+ const types=heroes.map(h=>h.type),ranks=saveTrainingRank(trainingElapsed,types),rank=ranks.findIndex(r=>Array.isArray(r.types)&&r.types.join('|')===types.join('|')&&Math.abs(r.time-trainingElapsed)<.002)+1,names=types.map(t=>heroInfo[t]?.name||t).join('・');
+ const msg=`FINISH!! ${formatTrainingTime(trainingElapsed)} / ${types.length}人部門${rank>0?' / TOP '+rank:''}`;
+ notice(msg,'#fff08a',4200);document.getElementById('loadStatus').textContent=`100体撃破 ${formatTrainingTime(trainingElapsed)}　${types.length}人部門　${names}`;
  if(window.refreshTrainingMenu)window.refreshTrainingMenu();setTimeout(()=>ui.start.style.display='grid',1700)
 }

@@ -162,7 +162,7 @@ function setupTrainingBattle(){
  heroes=selectedTypes.slice(0,trainingPartySize).map((type,i)=>new Hero(type,starts[i][0],starts[i][1]));heroes.forEach(validateHeroSkills);heroIndex=Math.max(0,heroes.findIndex(h=>h.type===selectedStartType));
  boss=createTrainingProxy();
  shots.length=particles.length=walls.length=slashes.length=fistTrails.length=minions.length=lasers.length=holyFx.length=holyDots.length=runes.length=0;
- trainingKills=0;trainingElapsed=0;trainingSpawnTimer=0;trainingFinished=false;trainingSpawnFlash.fill(0);
+ trainingKills=0;trainingElapsed=0;trainingSpawnTimer=0;trainingFinished=false;timeStop=0;trainingSpawnFlash.fill(0);
  const initial=trainingPartySize===3?12:trainingPartySize===2?9:6;for(let i=0;i<initial;i++)spawnTrainingMinion();
  updateUI();notice(trainingChallenge==='limit'?`無双修行――${trainingPartySize}人で60秒間、限界まで倒せ！`:`修行開始――${trainingPartySize}人で手下100体を倒せ！`,'#9feaff',1500)
 }
@@ -177,6 +177,7 @@ function finishTraining(){
   ranks=saveTrainingRank(trainingElapsed,types);rank=ranks.findIndex(r=>Array.isArray(r.types)&&r.types.join('|')===types.join('|')&&Math.abs(r.time-trainingElapsed)<.002)+1;
   msg=`FINISH!! ${formatTrainingTime(trainingElapsed)} / ${types.length}人部門${rank>0?' / TOP '+rank:''}`;status=`100体撃破 ${formatTrainingTime(trainingElapsed)}　${types.length}人部門　${names}`;
  }
+ if(types.includes('mage')&&!isArchmageUnlocked()){saveArchmageUnlock();if(window.unlockArchmageChoice)window.unlockArchmageChoice();msg+=' / アークメイジ解放！';status+='　魔法の極致に達し、アークメイジが解放された！'}
  notice(msg,'#fff08a',4200);document.getElementById('loadStatus').textContent=status;
  if(window.refreshTrainingMenu)window.refreshTrainingMenu();setTimeout(()=>ui.start.style.display='grid',1700)
 }

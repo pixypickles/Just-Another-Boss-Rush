@@ -28,6 +28,7 @@ boss.draw();heroes.forEach((h,i)=>h.draw(i));
  for(const l of bloodBeams){ctx.save();ctx.globalAlpha=.9;ctx.strokeStyle=l.hit?'#d41446':'#8d1738';ctx.shadowBlur=6;ctx.shadowColor='#ff174f';ctx.lineCap='round';ctx.lineWidth=l.width;ctx.beginPath();ctx.moveTo(l.x,l.y);ctx.lineTo(l.x+l.dx*760,l.y+l.dy*760);ctx.stroke();ctx.strokeStyle='#ff9ab3';ctx.lineWidth=Math.max(1,l.width*.32);ctx.stroke();ctx.restore()}
  for(const l of lasers){const k=clamp(l.life/l.max,0,1);ctx.save();ctx.globalAlpha=.45+.5*k;ctx.strokeStyle='#fffbd0';ctx.shadowBlur=28;ctx.shadowColor='#fff4a8';ctx.lineWidth=l.width*k+8;ctx.beginPath();ctx.moveTo(l.x,l.y);ctx.lineTo(l.x+l.dx*1100,l.y+l.dy*1100);ctx.stroke();ctx.strokeStyle='#ffffff';ctx.lineWidth=Math.max(4,l.width*.32*k);ctx.stroke();ctx.restore()}
  for(const p of particles){ctx.globalAlpha=clamp(p.life/p.max,0,1);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill()}
+ drawTimeStopOverlay();
  ctx.restore();ctx.globalAlpha=1
 }
 let fatalErrorShown=false;
@@ -43,6 +44,9 @@ function showRuntimeError(err){
 }
 window.addEventListener('error',e=>showRuntimeError(e.error||new Error(e.message)));
 window.addEventListener('unhandledrejection',e=>showRuntimeError(e.reason||new Error('Promise error')));
+function drawTimeStopOverlay(){if(timeStop<=0)return;ctx.save();ctx.fillStyle='rgba(150,210,255,.13)';ctx.fillRect(0,0,W,H);ctx.strokeStyle='rgba(225,245,255,.72)';ctx.lineWidth=5;ctx.beginPath();ctx.arc(500,500,430,0,Math.PI*2);ctx.stroke();ctx.fillStyle='rgba(240,250,255,.9)';ctx.font='bold 32px sans-serif';ctx.textAlign='center';ctx.fillText('TIME STOP',500,92);ctx.restore()}
+
+
 function loop(t){
  const dt=Math.min(.033,(t-last)/1000||0);last=t;
  try{if(running)update(dt);draw()}catch(err){showRuntimeError(err)}

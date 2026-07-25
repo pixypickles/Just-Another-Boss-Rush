@@ -352,3 +352,9 @@
 .trainingChallengeButton.shootingAttack{background:linear-gradient(180deg,#227aa0,#123d62);border-color:#69dcff;box-shadow:0 12px 0 #092b45,0 15px 28px #24bddd33}.trainingChallengeButton.shootingAttack:not(:disabled):hover{filter:brightness(1.12)}
 
 #trainingPrecisionPlay.trainingChallengeButton{border-color:#ffd66b;background:linear-gradient(180deg,#8a6420,#49330f);box-shadow:0 8px 0 #2e2008,0 14px 30px #ffc84a2b;color:#fff}
+
+/* v87: make the training-ground entrance easier to notice without overpowering the boss-room button */
+#trainingMenuButton:not(:disabled){min-width:132px;padding:12px 20px;border:2px solid #84e8ff;border-radius:12px;background:linear-gradient(180deg,#eefcff,#b9efff);color:#092536;font-weight:900;font-size:17px;box-shadow:0 5px 0 #27758c,0 0 20px #4edcff55;cursor:pointer;transition:transform .12s ease,filter .12s ease,box-shadow .12s ease}
+#trainingMenuButton:not(:disabled):hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 6px 0 #27758c,0 0 25px #4edcff77}
+#trainingMenuButton:not(:disabled):active{transform:translateY(4px);box-shadow:0 1px 0 #27758c,0 0 15px #4edcff55}
+#trainingMenuButton:disabled{min-width:132px;padding:12px 18px;border-radius:12px}

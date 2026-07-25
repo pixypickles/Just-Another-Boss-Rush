@@ -54,3 +54,10 @@ v75 changes:
 - 上から下へ流れる的を狙う、新しい「射撃訓練」を追加しました。
 - 命中位置により中心100点・内側50点・外側20点で採点します。
 - 射撃訓練と迎撃訓練はキャラクター別TOP3を別々に保存します。
+
+
+## v87 training fixes
+- Training-ground entrance button visibility improved.
+- Fixed intermittent A-button input in intercept and precision shooting training.
+- Intercept A patterns/cooldowns now match each shooting character's normal A attack.
+- Precision volleys fly in a lead-follow formation; every bullet can score and targets remain until the volley hits are resolved.

@@ -209,10 +209,15 @@ function spawnShootingTarget(){
 }
 function fireShootingBullet(){
  if(shootingFireCd>0||!heroes[0])return;const h=heroes[0],type=h.type;
- if((type==='ninja'||type==='fox')&&shootingBullets.filter(b=>b.ownerType===type).length>=2)return;
- const angles=type==='archmage'?[-.18,0,.18]:type==='mage'?[-.11,.11]:[0];
- for(const a of angles){const speed=type==='ninja'?720:type==='fox'?680:600;shootingBullets.push({x:h.x+38,y:h.y-8,vx:Math.cos(a)*speed,vy:Math.sin(a)*speed,r:type==='archmage'?13:type==='mage'?14:11,life:2.2,ownerType:type,type:(type==='ninja'||type==='fox')?'shuriken':'fire'})}
- shootingFireCd=type==='ninja'||type==='fox'?.13:.22;h.attackAnim=.12
+ // 迎撃訓練では各キャラの通常Aと同じ弾数・角度・速度・再使用間隔を使う。
+ const specs={
+  mage:{angles:[-.11,.11],speed:560,r:13,cd:.72,type:'fire'},
+  archmage:{angles:[-.22,0,.22],speed:680,r:18,cd:.48,type:'fire'},
+  fox:{angles:[-.18,0,.18],speed:720,r:11,cd:.34,type:'shuriken'},
+  ninja:{angles:[0,0,0],speed:700,r:10,cd:.82,type:'shuriken',delays:[0,.105,.21]}
+ },sp=specs[type]||specs.mage;
+ sp.angles.forEach((a,i)=>shootingBullets.push({x:h.x+Math.cos(a)*32,y:h.y-8+Math.sin(a)*32,vx:Math.cos(a)*sp.speed,vy:Math.sin(a)*sp.speed,r:sp.r,life:2.2,ownerType:type,type:sp.type,delay:sp.delays?sp.delays[i]:0}));
+ shootingFireCd=sp.cd;h.attackAnim=.12
 }
 function updateShootingGame(dt){
  trainingElapsed+=dt;shootingSpawnTimer-=dt;shootingFireCd=Math.max(0,shootingFireCd-dt);
@@ -220,7 +225,7 @@ function updateShootingGame(dt){
  const h=heroes[0];if(h){let mx=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+joy.x,my=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+joy.y;if(Math.hypot(mx,my)>.08){const n=norm(mx,my);h.x+=n.x*230*dt;h.y+=n.y*230*dt}h.x=clamp(h.x,95,335);h.y=clamp(h.y,165,865);h.facing={x:1,y:0}}
  if(pressed.has('KeyJ')){pressed.delete('KeyJ');fireShootingBullet()}
  while(shootingSpawnTimer<=0){if(shootingTargets.length<7)spawnShootingTarget();shootingSpawnTimer+=Math.max(.34,.68-trainingElapsed*.0045)}
- for(let i=shootingBullets.length-1;i>=0;i--){const b=shootingBullets[i];b.life-=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.life<=0||b.x>975||b.y<120||b.y>930){shootingBullets.splice(i,1);continue}let hit=false;for(let j=shootingTargets.length-1;j>=0;j--){const t=shootingTargets[j];if(Math.hypot(b.x-t.x,b.y-t.y)<b.r+t.r){shootingScore+=t.points;shootingCombo++;burst(t.x,t.y,t.kind==='gold'?'#ffe46b':t.kind==='small'?'#9fe8ff':'#ffb27a',14,210);particles.push({x:t.x,y:t.y-35,vx:0,vy:-60,r:8,c:'#ffffff',life:.5,max:.5,text:'+'+t.points});shootingTargets.splice(j,1);shootingBullets.splice(i,1);hit=true;break}}if(hit)continue}
+ for(let i=shootingBullets.length-1;i>=0;i--){const b=shootingBullets[i];b.life-=dt;if(b.delay>0){b.delay-=dt;continue}b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.life<=0||b.x>975||b.y<120||b.y>930){shootingBullets.splice(i,1);continue}let hit=false;for(let j=shootingTargets.length-1;j>=0;j--){const t=shootingTargets[j];if(Math.hypot(b.x-t.x,b.y-t.y)<b.r+t.r){shootingScore+=t.points;shootingCombo++;burst(t.x,t.y,t.kind==='gold'?'#ffe46b':t.kind==='small'?'#9fe8ff':'#ffb27a',14,210);particles.push({x:t.x,y:t.y-35,vx:0,vy:-60,r:8,c:'#ffffff',life:.5,max:.5,text:'+'+t.points});shootingTargets.splice(j,1);shootingBullets.splice(i,1);hit=true;break}}if(hit)continue}
  for(let i=shootingTargets.length-1;i>=0;i--){const t=shootingTargets[i];t.life-=dt;t.wobble+=dt*2.6;t.x+=t.vx*dt;t.y+=Math.sin(t.wobble)*12*dt;if(t.x<355||t.life<=0){shootingTargets.splice(i,1);shootingCombo=0}}
  updateUI();released.clear()
 }
@@ -243,11 +248,14 @@ function spawnPrecisionTarget(){
  const r=Math.random()<.22?34:42,speed=105+progress*42+rnd(-8,14);
  precisionTargets.push({x,y:145-r,r,vy:speed,life:9,wobble:rnd(0,Math.PI*2)})
 }
+let precisionVolleyId=0;
 function firePrecisionBullet(){
  if(precisionFireCd>0||!heroes[0])return;const h=heroes[0],type=h.type;
- const offsets=type==='archmage'?[-28,0,28]:type==='mage'?[-18,18]:type==='ninja'||type==='fox'?[-13,13]:[0];
- for(const oy of offsets)precisionBullets.push({x:h.x+38,y:h.y+oy-8,vx:(type==='ninja'?690:type==='fox'?660:620),vy:0,r:type==='archmage'?11:type==='mage'?12:10,life:1.5,ownerType:type,type:(type==='ninja'||type==='fox')?'shuriken':'fire'});
- precisionFireCd=type==='archmage'?.64:type==='mage'?.58:.52;h.attackAnim=.12
+ // 横一列ではなく進行方向へ間隔を空ける。先頭弾が必ず先に的へ届く。
+ const count=type==='mage'?2:3,speed=type==='archmage'?680:type==='ninja'?700:type==='fox'?720:560;
+ const radius=type==='archmage'?13:type==='mage'?12:10,kind=(type==='ninja'||type==='fox')?'shuriken':'fire',gap=42,id=++precisionVolleyId;
+ for(let i=0;i<count;i++)precisionBullets.push({x:h.x+42-i*gap,y:h.y-8,vx:speed,vy:0,r:radius,life:1.7,ownerType:type,type:kind,volleyId:id,order:i,volleySize:count});
+ precisionFireCd=type==='archmage'?.62:type==='mage'?.72:type==='fox'?.52:.82;h.attackAnim=.12
 }
 function precisionHitScore(distance,r){const q=distance/r;return q<=.18?100:q<=.48?50:20}
 function updatePrecisionShootingGame(dt){
@@ -256,8 +264,8 @@ function updatePrecisionShootingGame(dt){
  const h=heroes[0];if(h){let my=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+joy.y;if(Math.abs(my)>.08)h.y+=Math.sign(my)*260*dt;h.x=175;h.y=clamp(h.y,190,810);h.facing={x:1,y:0}}
  if(pressed.has('KeyJ')){pressed.delete('KeyJ');firePrecisionBullet()}
  while(precisionSpawnTimer<=0){if(precisionTargets.length<5)spawnPrecisionTarget();precisionSpawnTimer+=Math.max(.72,1.12-trainingElapsed*.004)}
- for(let i=precisionBullets.length-1;i>=0;i--){const b=precisionBullets[i];b.life-=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.life<=0||b.x>965){precisionBullets.splice(i,1);continue}let hit=false;for(let j=precisionTargets.length-1;j>=0;j--){const t=precisionTargets[j],d=Math.hypot(b.x-t.x,b.y-t.y);if(d<b.r+t.r){const points=precisionHitScore(d,t.r),label=points===100?'PERFECT':points===50?'GOOD':'HIT',color=points===100?'#ffe36b':points===50?'#9fe8ff':'#ffffff';precisionScore+=points;precisionCombo++;precisionJudgeFx.push({x:t.x-58,y:t.y,text:`${label} +${points}`,color,life:.75});burst(t.x,t.y,color,16,190);precisionTargets.splice(j,1);precisionBullets.splice(i,1);hit=true;break}}if(hit)continue}
- for(let i=precisionTargets.length-1;i>=0;i--){const t=precisionTargets[i];t.life-=dt;t.wobble+=dt*1.8;t.y+=t.vy*dt;t.x+=Math.sin(t.wobble)*2*dt;if(t.y>865||t.life<=0){precisionTargets.splice(i,1);precisionCombo=0}}
+ for(let i=precisionBullets.length-1;i>=0;i--){const b=precisionBullets[i];b.life-=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.life<=0||b.x>965){precisionBullets.splice(i,1);continue}let hit=false;for(let j=precisionTargets.length-1;j>=0;j--){const t=precisionTargets[j],d=Math.hypot(b.x-t.x,b.y-t.y);if(d<b.r+t.r){t.hitOrders=t.hitOrders||new Set();const hitKey=b.volleyId+':'+b.order;if(t.hitOrders.has(hitKey))continue;t.hitOrders.add(hitKey);const points=precisionHitScore(d,t.r),label=points===100?'PERFECT':points===50?'GOOD':'HIT',color=points===100?'#ffe36b':points===50?'#9fe8ff':'#ffffff';precisionScore+=points;precisionCombo++;t.hitFlash=.16;t.hitCount=(t.hitCount||0)+1;t.requiredHits=Math.max(t.requiredHits||1,b.volleySize||1);precisionJudgeFx.push({x:t.x-58,y:t.y-(t.hitCount-1)*28,text:`${label} +${points}`,color,life:.75});burst(b.x,b.y,color,10,145);precisionBullets.splice(i,1);hit=true;if(t.hitCount>=t.requiredHits){burst(t.x,t.y,color,18,210);precisionTargets.splice(j,1)}break}}if(hit)continue}
+ for(let i=precisionTargets.length-1;i>=0;i--){const t=precisionTargets[i];t.life-=dt;t.hitFlash=Math.max(0,(t.hitFlash||0)-dt);t.wobble+=dt*1.8;t.y+=t.vy*dt;t.x+=Math.sin(t.wobble)*2*dt;if(t.y>865||t.life<=0){precisionTargets.splice(i,1);precisionCombo=0}}
  for(let i=precisionJudgeFx.length-1;i>=0;i--){const f=precisionJudgeFx[i];f.life-=dt;f.y-=26*dt;if(f.life<=0)precisionJudgeFx.splice(i,1)}
  updateUI();released.clear()
 }

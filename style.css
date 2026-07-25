@@ -325,3 +325,15 @@
 .trainingChallengeButtons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
 .trainingPanel #trainingBack{margin-top:10px;min-width:120px}
 @media(max-width:700px){.trainingChallengeButtons{grid-template-columns:1fr}}
+
+/* v73: training party selection without a separate player-count step */
+.trainingPartyBlock{margin:12px 0;padding:12px;border-radius:13px;background:#0b1524;border:1px solid #ffffff20}
+.trainingPartyHeader{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px;color:#dff5ff}
+#trainingPartySummary{color:#8ee8ff;font-weight:800;text-align:right}
+.trainingPartyChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.trainingPartyChoice{min-height:44px;border:1px solid #ffffff22;border-radius:10px;background:#111c2d;color:#d8e5f3;font:inherit;font-weight:700;cursor:pointer}
+.trainingPartyChoice.selected{border-color:#55d8ff;background:linear-gradient(#196b8a,#103d58);color:#fff;box-shadow:0 0 14px #2ecbff55}
+.trainingPartyChoice.locked{opacity:.45}
+.trainingPartyChoice.unlockLocked{opacity:.35;cursor:not-allowed}
+.trainingHint{margin-top:8px;color:#91a5bb}
+@media(max-width:700px){.trainingPartyChoices{grid-template-columns:repeat(2,minmax(0,1fr))}.trainingPartyHeader{align-items:flex-start;flex-direction:column}#trainingPartySummary{text-align:left}}

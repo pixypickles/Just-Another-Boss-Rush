@@ -2,16 +2,27 @@ document.querySelectorAll('.tb').forEach(b=>{const code=b.dataset.key;const down
 addEventListener('blur',()=>resetCombatInput());document.addEventListener('visibilitychange',()=>{if(document.hidden)resetCombatInput()});
 const playButton=document.getElementById('play');
 const modeSelect=document.getElementById('partyMode'),partyChoices=[...document.querySelectorAll('.partyChoice')],startChoices=[...document.querySelectorAll('input[name="startHero"]')];
-const trainingPlay=document.getElementById('trainingPlay'),trainingLimitPlay=document.getElementById('trainingLimitPlay'),trainingRank=document.getElementById('trainingRank'),trainingPartySizeSelect=document.getElementById('trainingPartySize'),trainingMenuButton=document.getElementById('trainingMenuButton'),trainingPanel=document.getElementById('trainingPanel'),trainingBack=document.getElementById('trainingBack'),mainActions=document.getElementById('mainActions');
+const trainingPlay=document.getElementById('trainingPlay'),trainingLimitPlay=document.getElementById('trainingLimitPlay'),trainingRank=document.getElementById('trainingRank'),trainingMenuButton=document.getElementById('trainingMenuButton'),trainingPanel=document.getElementById('trainingPanel'),trainingBack=document.getElementById('trainingBack'),mainActions=document.getElementById('mainActions'),trainingPartyChoices=document.getElementById('trainingPartyChoices'),trainingPartySummary=document.getElementById('trainingPartySummary');
+let trainingSelectedTypes=[];
 function trainingRankHtml(title,book,score=false){return `<b>${title} 部門別 TOP 3</b>`+[1,2,3].map(size=>{const ranks=book[size]||[];return `<div class="rankSection"><div class="rankTitle">${size}人部門</div>${ranks.length?ranks.map((r,i)=>{const types=Array.isArray(r.types)?r.types:[r.type];return `<div class="rankRow"><span>${i+1}位</span><span class="rankParty">${types.map(t=>heroInfo[t]?.name||t).join('・')}</span><strong>${score?r.kills+'体':formatTrainingTime(r.time)}</strong></div>`}).join(''):'<div>記録はまだありません。</div>'}</div>`}).join('')}
-function refreshTrainingMenu(){const unlocked=isTrainingUnlocked();trainingMenuButton.disabled=!unlocked;trainingMenuButton.textContent=unlocked?'修行場':'修行場（通常クリアで解放）';trainingPlay.disabled=!unlocked;trainingLimitPlay.disabled=!unlocked;trainingPartySizeSelect.disabled=!unlocked;trainingPlay.textContent='100体撃破タイムアタック';trainingLimitPlay.textContent='60秒・制限時間撃破';trainingRank.innerHTML=trainingRankHtml('100体撃破',readTrainingRankBook())+trainingRankHtml('60秒撃破',readTrainingScoreBook(),true)}
+function refreshTrainingPartyUi(){
+ const unlocked=isTrainingUnlocked(),count=trainingSelectedTypes.length;
+ trainingPartySummary.textContent=count?`${count}人部門：${trainingSelectedTypes.map(t=>heroInfo[t]?.name||t).join('・')}`:'参加キャラクターを選んでください';
+ [...trainingPartyChoices.querySelectorAll('.trainingPartyChoice')].forEach(b=>{const selected=trainingSelectedTypes.includes(b.dataset.hero);b.classList.toggle('selected',selected);b.classList.toggle('locked',!selected&&count>=3)});
+ trainingPlay.disabled=!unlocked||count<1||count>3;trainingLimitPlay.disabled=!unlocked||count<1||count>3;
+}
+function buildTrainingPartyChoices(){
+ trainingPartyChoices.innerHTML='';
+ for(const source of partyChoices){const b=document.createElement('button');b.type='button';b.className='trainingPartyChoice';b.dataset.hero=source.dataset.hero;b.textContent=heroInfo[source.dataset.hero]?.name||source.textContent.replace('（未解放）','');const locked=source.classList.contains('unlockLocked')||source.disabled;b.disabled=locked;b.classList.toggle('unlockLocked',locked);if(locked)b.textContent+='（未解放）';b.addEventListener('click',()=>{if(b.disabled)return;const type=b.dataset.hero,i=trainingSelectedTypes.indexOf(type);if(i>=0)trainingSelectedTypes.splice(i,1);else if(trainingSelectedTypes.length<3)trainingSelectedTypes.push(type);refreshTrainingPartyUi()});trainingPartyChoices.appendChild(b)}
+ refreshTrainingPartyUi();
+}
+function refreshTrainingMenu(){const unlocked=isTrainingUnlocked();trainingMenuButton.disabled=!unlocked;trainingMenuButton.textContent=unlocked?'修行場':'修行場（通常クリアで解放）';trainingPlay.textContent='100体撃破タイムアタック';trainingLimitPlay.textContent='60秒・制限時間撃破';trainingRank.innerHTML=trainingRankHtml('100体撃破',readTrainingRankBook())+trainingRankHtml('60秒撃破',readTrainingScoreBook(),true);buildTrainingPartyChoices()}
 refreshTrainingMenu();
 
-function openTrainingPanel(){if(!isTrainingUnlocked())return;mainActions.hidden=true;trainingPanel.hidden=false;document.getElementById('loadStatus').textContent='修行場：種目と参加人数を選択してください。'}
+function openTrainingPanel(){if(!isTrainingUnlocked())return;if(!trainingSelectedTypes.length){trainingSelectedTypes=partyChoices.filter(b=>b.classList.contains('selected')&&!b.disabled).slice(0,3).map(b=>b.dataset.hero);if(!trainingSelectedTypes.length)trainingSelectedTypes=['knight']}buildTrainingPartyChoices();mainActions.hidden=true;trainingPanel.hidden=false;document.getElementById('loadStatus').textContent='修行場：参加キャラクターを1〜3人選び、種目を選択してください。'}
 function closeTrainingPanel(){trainingPanel.hidden=true;mainActions.hidden=false;document.getElementById('loadStatus').textContent='ボス部屋または修行場を選択してください。'}
 trainingMenuButton.addEventListener('click',openTrainingPanel);
 trainingBack.addEventListener('click',closeTrainingPanel);
-trainingPartySizeSelect.addEventListener('change',()=>{const need=Number(trainingPartySizeSelect.value)||1;if(['1','2','3'].includes(String(need))){modeSelect.value=String(need);modeSelect.dispatchEvent(new Event('change'))}});
 function addBushinOptions(){if([...modeSelect.options].some(o=>o.value==='bushin3'))return;for(const n of [3,2,1]){const o=document.createElement('option');o.value='bushin'+n;o.textContent=`武神挑戦モード（${n}人）`;modeSelect.appendChild(o)}}
 function modeCount(){const v=modeSelect.value;return v==='fox3'?3:v.startsWith('bushin')?Number(v.slice(-1)):v==='awakening'?1:Number(v)}
 function addFoxModeOption(){if([...modeSelect.options].some(o=>o.value==='fox3'))return;const o=document.createElement('option');o.value='fox3';o.textContent='キツネ対戦モード（3人限定）';modeSelect.appendChild(o)}
@@ -134,9 +145,9 @@ window.__bossRushStart=startGame;
 function startTraining(e,challenge='time'){
  e.preventDefault();
  if(!isTrainingUnlocked()||startingGame)return;
- const need=Number(trainingPartySizeSelect.value)||1;
- if(selectedTypes.length!==need){modeSelect.value=String(need);modeSelect.dispatchEvent(new Event('change'));document.getElementById('loadStatus').textContent=`修行場用にキャラクターを${need}人選んでください。`;return}
- trainingPartySize=need;trainingChallenge=challenge;
+ const need=trainingSelectedTypes.length;
+ if(need<1||need>3){document.getElementById('loadStatus').textContent='修行場用にキャラクターを1〜3人選んでください。';return}
+ selectedTypes=[...trainingSelectedTypes];selectedStartType=selectedTypes[0];trainingPartySize=need;trainingChallenge=challenge;
  startingGame=true;trainingPlay.disabled=true;trainingLimitPlay.disabled=true;document.getElementById('loadStatus').textContent=`${need}人部門の${challenge==='limit'?'60秒撃破':'100体撃破'}を準備しています…`;
  const launch=()=>{try{trainingPanel.hidden=true;mainActions.hidden=false;partyDeaths=0;awakeningSoloCarry=null;trainingMode=true;bushinMode=foxMode=false;awakenedMode=trainingChallenge==='limit';bossIndex=0;transition=0;setupTrainingBattle();running=true;last=performance.now();ui.notice.style.opacity=0;ui.start.style.display='none';startingGame=false;refreshTrainingMenu()}catch(err){running=false;startingGame=false;ui.start.style.display='grid';refreshTrainingMenu();document.getElementById('loadStatus').textContent='修行場開始エラー: '+(err?.message||err);console.error(err)}};
  if(selectedTypes.includes('mimic'))showMimicBuildScreen(launch);else launch()

@@ -150,8 +150,8 @@ function trainingMinionLimit(){return trainingPartySize===3?16:trainingPartySize
 function trainingHpMultiplier(){return trainingPartySize===3?2:trainingPartySize===2?1.5:1}
 function spawnTrainingMinion(){
  const limit=trainingMinionLimit();
- if(!trainingMode||trainingFinished||trainingKills+minions.length>=100||minions.length>=limit)return;
- const pointIndex=Math.floor(Math.random()*TRAINING_SPAWN_POINTS.length),p=TRAINING_SPAWN_POINTS[pointIndex],strong=Math.random()<Math.min(.32,.08+trainingKills*.0022),growth=Math.min(1,trainingKills/70),baseHp=strong?(78+112*growth):(38+67*growth),hp=Math.round(baseHp*trainingHpMultiplier());
+ if(!trainingMode||trainingFinished||(trainingChallenge==='time'&&trainingKills+minions.length>=100)||minions.length>=limit)return;
+ const pointIndex=Math.floor(Math.random()*TRAINING_SPAWN_POINTS.length),p=TRAINING_SPAWN_POINTS[pointIndex],progress=trainingChallenge==='limit'?Math.min(1,trainingElapsed/60):Math.min(1,trainingKills/70),strong=Math.random()<Math.min(.32,.08+(trainingChallenge==='limit'?trainingElapsed*.003:trainingKills*.0022)),baseHp=strong?(78+112*progress):(38+67*progress),hp=Math.round(baseHp*trainingHpMultiplier());
  trainingSpawnFlash[pointIndex]=.38;
  minions.push({x:p[0]+rnd(-25,25),y:p[1]+rnd(-25,25),vx:0,vy:0,r:strong?27:21,hp,maxHp:hp,life:9999,cd:rnd(.35,.9),damage:strong?34:23,strong,training:true})
 }
@@ -164,12 +164,19 @@ function setupTrainingBattle(){
  shots.length=particles.length=walls.length=slashes.length=fistTrails.length=minions.length=lasers.length=holyFx.length=holyDots.length=runes.length=0;
  trainingKills=0;trainingElapsed=0;trainingSpawnTimer=0;trainingFinished=false;trainingSpawnFlash.fill(0);
  const initial=trainingPartySize===3?12:trainingPartySize===2?9:6;for(let i=0;i<initial;i++)spawnTrainingMinion();
- updateUI();notice(`修行開始――${trainingPartySize}人で手下100体を倒せ！`,'#9feaff',1500)
+ updateUI();notice(trainingChallenge==='limit'?`無双修行――${trainingPartySize}人で60秒間、限界まで倒せ！`:`修行開始――${trainingPartySize}人で手下100体を倒せ！`,'#9feaff',1500)
 }
 function finishTraining(){
  if(trainingFinished)return;trainingFinished=true;running=false;resetCombatInput();
- const types=heroes.map(h=>h.type),ranks=saveTrainingRank(trainingElapsed,types),rank=ranks.findIndex(r=>Array.isArray(r.types)&&r.types.join('|')===types.join('|')&&Math.abs(r.time-trainingElapsed)<.002)+1,names=types.map(t=>heroInfo[t]?.name||t).join('・');
- const msg=`FINISH!! ${formatTrainingTime(trainingElapsed)} / ${types.length}人部門${rank>0?' / TOP '+rank:''}`;
- notice(msg,'#fff08a',4200);document.getElementById('loadStatus').textContent=`100体撃破 ${formatTrainingTime(trainingElapsed)}　${types.length}人部門　${names}`;
+ const types=heroes.map(h=>h.type),names=types.map(t=>heroInfo[t]?.name||t).join('・');
+ let ranks,rank,msg,status;
+ if(trainingChallenge==='limit'){
+  ranks=saveTrainingScore(trainingKills,types);rank=ranks.findIndex(r=>Array.isArray(r.types)&&r.types.join('|')===types.join('|')&&r.kills===trainingKills)+1;
+  msg=`TIME UP!! ${trainingKills}体撃破 / ${types.length}人部門${rank>0?' / TOP '+rank:''}`;status=`60秒撃破 ${trainingKills}体　${types.length}人部門　${names}`;
+ }else{
+  ranks=saveTrainingRank(trainingElapsed,types);rank=ranks.findIndex(r=>Array.isArray(r.types)&&r.types.join('|')===types.join('|')&&Math.abs(r.time-trainingElapsed)<.002)+1;
+  msg=`FINISH!! ${formatTrainingTime(trainingElapsed)} / ${types.length}人部門${rank>0?' / TOP '+rank:''}`;status=`100体撃破 ${formatTrainingTime(trainingElapsed)}　${types.length}人部門　${names}`;
+ }
+ notice(msg,'#fff08a',4200);document.getElementById('loadStatus').textContent=status;
  if(window.refreshTrainingMenu)window.refreshTrainingMenu();setTimeout(()=>ui.start.style.display='grid',1700)
 }

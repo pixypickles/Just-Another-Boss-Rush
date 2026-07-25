@@ -39,7 +39,15 @@ function closeTrainingPanel(){trainingPanel.hidden=true;mainActions.hidden=false
 trainingMenuButton.addEventListener('click',openTrainingPanel);
 trainingBack.addEventListener('click',closeTrainingPanel);
 function addBushinOptions(){if([...modeSelect.options].some(o=>o.value==='bushin3'))return;for(const n of [3,2,1]){const o=document.createElement('option');o.value='bushin'+n;o.textContent=`武神挑戦モード（${n}人）`;modeSelect.appendChild(o)}}
-function modeCount(){const v=modeSelect.value;return v==='hard3'||v==='fox3'?3:v.startsWith('bushin')?Number(v.slice(-1)):v==='awakening'?1:Number(v)}
+function modeConfig(v=modeSelect.value){
+ const configs={hard1:{count:1,hp:1.35,atk:1.35,label:'1人ハード'},hard2:{count:2,hp:1.55,atk:1.45,label:'2人ハード'},hard3:{count:3,hp:1.7,atk:1.5,label:'3人ハード'},oni3:{count:3,hp:2.3,atk:1.9,label:'3人鬼ハード'}};
+ if(configs[v])return {...configs[v],hard:true};
+ if(v==='fox3')return {count:3,hp:1,atk:1,label:'キツネ対戦',hard:false};
+ if(v.startsWith('bushin'))return {count:Number(v.slice(-1)),hp:1,atk:1,label:'武神挑戦',hard:false};
+ if(v==='awakening')return {count:1,hp:1,atk:1,label:'覚醒無双',hard:false};
+ return {count:Number(v),hp:1,atk:1,label:`${v}人`,hard:false};
+}
+function modeCount(){return modeConfig().count}
 function addFoxModeOption(){if([...modeSelect.options].some(o=>o.value==='fox3'))return;const o=document.createElement('option');o.value='fox3';o.textContent='キツネ対戦モード（3人限定）';modeSelect.appendChild(o)}
 function addAwakeningOption(){if([...modeSelect.options].some(o=>o.value==='awakening'))return;const o=document.createElement('option');o.value='awakening';o.textContent='覚醒無双モード（1人・CTなし・大量召喚）';modeSelect.appendChild(o)}
 function unlockHighPriestChoice(){document.querySelectorAll('[data-hero="highpriest"],input[value="highpriest"]').forEach(el=>{el.disabled=false;el.closest('label')?.classList.remove('disabled')});const b=document.querySelector('.partyChoice[data-hero="highpriest"]');if(b){b.classList.remove('unlockLocked');b.textContent='ハイプリースト'}}
@@ -73,7 +81,7 @@ if(isPlayableBushinUnlocked())unlockBushinChoice();
 if(isFoxUnlocked())unlockFoxChoice();
 if(isArchmageUnlocked())unlockArchmageChoice();
 function syncPartySetup(){
- const awakening=modeSelect.value==='awakening',bushin=modeSelect.value.startsWith('bushin'),fox=modeSelect.value==='fox3',hard=modeSelect.value==='hard3',need=modeCount();
+ const cfg=modeConfig(),awakening=modeSelect.value==='awakening',bushin=modeSelect.value.startsWith('bushin'),fox=modeSelect.value==='fox3',hard=cfg.hard,need=cfg.count;
  let chosen=partyChoices.filter(b=>b.classList.contains('selected'));
  while(chosen.length>need){chosen.pop().classList.remove('selected');chosen=partyChoices.filter(b=>b.classList.contains('selected'))}
  for(const b of partyChoices)b.classList.toggle('locked',!b.classList.contains('selected')&&chosen.length>=need);
@@ -82,9 +90,9 @@ function syncPartySetup(){
  if(!selectedTypes.includes(selectedStartType))selectedStartType=selectedTypes[0]||'knight';
  const radio=startChoices.find(r=>r.value===selectedStartType);if(radio)radio.checked=true;
  playButton.disabled=selectedTypes.length!==need;
- document.getElementById('setupStatus').textContent=selectedTypes.length===need?(awakening?`覚醒無双：${heroInfo[selectedTypes[0]].name}（敵HP1.7倍・攻撃強化・CTなし・手下最大28体）`:bushin?`武神挑戦：${need}人（人数に応じて武神HP補正）`:fox?'キツネ対戦：3人編成で白狐忍3体に挑戦':hard?`3人ハード：${selectedTypes.map(t=>heroInfo[t].name).join('・')}（敵HP1.7倍・攻撃力1.5倍）`:`${need}人編成：${selectedTypes.map(t=>heroInfo[t].name).join('・')}`):`キャラクターを${need}人選んでください`
+ document.getElementById('setupStatus').textContent=selectedTypes.length===need?(awakening?`覚醒無双：${heroInfo[selectedTypes[0]].name}（敵HP1.7倍・攻撃強化・CTなし・手下最大28体）`:bushin?`武神挑戦：${need}人（人数に応じて武神HP補正）`:fox?'キツネ対戦：3人編成で白狐忍3体に挑戦':hard?`${cfg.label}：${selectedTypes.map(t=>heroInfo[t].name).join('・')}（敵HP${cfg.hp}倍・攻撃力${cfg.atk}倍）`:`${need}人編成：${selectedTypes.map(t=>heroInfo[t].name).join('・')}`):`キャラクターを${need}人選んでください`
 }
-modeSelect.addEventListener('change',()=>{const awakening=modeSelect.value==='awakening',bushin=modeSelect.value.startsWith('bushin'),fox=modeSelect.value==='fox3',hard=modeSelect.value==='hard3',need=modeCount();partyChoices.forEach((b,i)=>b.classList.toggle('selected',i<need));selectedStartType=partyChoices.find(b=>b.classList.contains('selected'))?.dataset.hero||'knight';syncPartySetup()});
+modeSelect.addEventListener('change',()=>{const cfg=modeConfig(),awakening=modeSelect.value==='awakening',bushin=modeSelect.value.startsWith('bushin'),fox=modeSelect.value==='fox3',hard=cfg.hard,need=cfg.count;partyChoices.forEach((b,i)=>b.classList.toggle('selected',i<need));selectedStartType=partyChoices.find(b=>b.classList.contains('selected'))?.dataset.hero||'knight';syncPartySetup()});
 partyChoices.forEach(b=>b.addEventListener('click',()=>{
  if(b.classList.contains('unlockLocked')){document.getElementById('setupStatus').textContent=heroUnlockCondition(b.dataset.hero);return}
  const awakening=modeSelect.value==='awakening',need=modeCount(),selected=b.classList.contains('selected');
@@ -144,7 +152,7 @@ mimicCancel.addEventListener('click',()=>{mimicSetup.hidden=true;pendingMimicLau
 mimicSaveStart.addEventListener('click',()=>{const build=collectMimicBuild();mimicBattleBuild=build;try{localStorage.setItem(mimicStorageKey(activeMimicEntries===mimicOtherList),JSON.stringify(build))}catch{}mimicSetup.hidden=true;const launch=pendingMimicLaunch;pendingMimicLaunch=null;if(launch)launch()});
 let startingGame=false,lastStartRequest=0;
 function launchBattle(){
- partyDeaths=0;awakeningSoloCarry=null;trainingMode=false;bushinMode=modeSelect.value.startsWith('bushin');foxMode=modeSelect.value==='fox3';hardMode=modeSelect.value==='hard3';awakenedMode=!bushinMode&&!foxMode&&!hardMode&&modeSelect.value==='awakening';
+ partyDeaths=0;awakeningSoloCarry=null;trainingMode=false;bushinMode=modeSelect.value.startsWith('bushin');foxMode=modeSelect.value==='fox3';const cfg=modeConfig();hardMode=cfg.hard;difficultyMode=hardMode?modeSelect.value:'normal';enemyHpMultiplier=cfg.hp;enemyAttackMultiplier=cfg.atk;difficultyLabel=hardMode?cfg.label:'';awakenedMode=!bushinMode&&!foxMode&&!hardMode&&modeSelect.value==='awakening';
  const launch=()=>{try{bossIndex=0;transition=0;setupBattle();running=true;last=performance.now();ui.notice.style.opacity=0;ui.start.style.display='none';playButton.disabled=false;playButton.textContent='ボス部屋へ入る';startingGame=false}catch(err){running=false;ui.start.style.display='grid';playButton.disabled=false;playButton.textContent='ボス部屋へ入る';startingGame=false;const status=document.getElementById('loadStatus');status.textContent='開始エラー: '+(err&&err.message?err.message:String(err));console.error(err)}};
  requestAnimationFrame(launch);setTimeout(()=>{if(startingGame)launch()},180)
 }
@@ -167,7 +175,7 @@ function startTraining(e,challenge='time'){
  if(need<1||need>3){document.getElementById('loadStatus').textContent='修行場用にキャラクターを1〜3人選んでください。';return}
  selectedTypes=[...trainingSelectedTypes];selectedStartType=selectedTypes[0];trainingPartySize=need;trainingChallenge=challenge;
  startingGame=true;trainingPlay.disabled=true;trainingLimitPlay.disabled=true;document.getElementById('loadStatus').textContent=`${need}人部門の${challenge==='limit'?'60秒撃破':'100体撃破'}を準備しています…`;
- const launch=()=>{try{trainingPanel.hidden=true;mainActions.hidden=false;partyDeaths=0;awakeningSoloCarry=null;trainingMode=true;bushinMode=foxMode=hardMode=false;awakenedMode=trainingChallenge==='limit';bossIndex=0;transition=0;setupTrainingBattle();running=true;last=performance.now();ui.notice.style.opacity=0;ui.start.style.display='none';startingGame=false;refreshTrainingMenu()}catch(err){running=false;startingGame=false;ui.start.style.display='grid';refreshTrainingMenu();document.getElementById('loadStatus').textContent='修行場開始エラー: '+(err?.message||err);console.error(err)}};
+ const launch=()=>{try{trainingPanel.hidden=true;mainActions.hidden=false;partyDeaths=0;awakeningSoloCarry=null;trainingMode=true;bushinMode=foxMode=hardMode=false;difficultyMode='normal';enemyHpMultiplier=enemyAttackMultiplier=1;difficultyLabel='';awakenedMode=trainingChallenge==='limit';bossIndex=0;transition=0;setupTrainingBattle();running=true;last=performance.now();ui.notice.style.opacity=0;ui.start.style.display='none';startingGame=false;refreshTrainingMenu()}catch(err){running=false;startingGame=false;ui.start.style.display='grid';refreshTrainingMenu();document.getElementById('loadStatus').textContent='修行場開始エラー: '+(err?.message||err);console.error(err)}};
  if(selectedTypes.includes('mimic'))showMimicBuildScreen(launch,true);else launch()
 }
 trainingPlay.addEventListener('click',e=>startTraining(e,'time'));

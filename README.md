@@ -29,3 +29,11 @@ v75 changes:
 - Added Archmage A/B/C skills to Mimic skill selection when Archmage is in the party.
 - Locked character buttons are now tappable and show the character's unlock condition.
 - The same unlock-condition display works in both the boss-room party selector and training-ground party selector.
+
+
+## v77 人数別ハードモード
+- 1人ハード: 敵HP x1.35 / 攻撃力 x1.35
+- 2人ハード: 敵HP x1.55 / 攻撃力 x1.45
+- 3人ハード: 敵HP x1.70 / 攻撃力 x1.50
+- 3人鬼ハード: 敵HP x2.30 / 攻撃力 x1.90
+- AI・攻撃間隔は通常モードと共通

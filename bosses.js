@@ -232,32 +232,32 @@ function finishShootingTraining(){
 
 function setupPrecisionShootingBattle(){
  resetCombatInput();trainingPartySize=1;selectedTypes=[selectedTypes[0]];selectedStartType=selectedTypes[0];
- heroes=[new Hero(selectedTypes[0],500,850)];heroes.forEach(validateHeroSkills);heroIndex=0;heroes[0].facing={x:0,y:-1};
- boss=createTrainingProxy();boss.x=500;boss.y=200;
+ heroes=[new Hero(selectedTypes[0],175,500)];heroes.forEach(validateHeroSkills);heroIndex=0;heroes[0].facing={x:1,y:0};
+ boss=createTrainingProxy();boss.x=850;boss.y=200;
  shots.length=particles.length=walls.length=slashes.length=fistTrails.length=minions.length=lasers.length=holyFx.length=holyDots.length=runes.length=0;
  trainingElapsed=0;trainingFinished=false;precisionFinished=false;precisionScore=0;precisionCombo=0;precisionSpawnTimer=.7;precisionFireCd=0;precisionTargets.length=0;precisionBullets.length=0;precisionJudgeFx.length=0;timeStop=0;
- updateUI();notice('射撃訓練――流れる的の中心を狙え！','#ffd66b',2200)
+ updateUI();notice('射撃訓練――流れる的とすれ違う瞬間を狙え！','#ffd66b',2400)
 }
 function spawnPrecisionTarget(){
- const lanes=[215,405,595,785],x=lanes[Math.floor(Math.random()*lanes.length)]+rnd(-24,24),progress=Math.min(1,trainingElapsed/PRECISION_DURATION);
+ const lanes=[790,850,910],x=lanes[Math.floor(Math.random()*lanes.length)]+rnd(-10,10),progress=Math.min(1,trainingElapsed/PRECISION_DURATION);
  const r=Math.random()<.22?34:42,speed=105+progress*42+rnd(-8,14);
  precisionTargets.push({x,y:145-r,r,vy:speed,life:9,wobble:rnd(0,Math.PI*2)})
 }
 function firePrecisionBullet(){
  if(precisionFireCd>0||!heroes[0])return;const h=heroes[0],type=h.type;
  const offsets=type==='archmage'?[-28,0,28]:type==='mage'?[-18,18]:type==='ninja'||type==='fox'?[-13,13]:[0];
- for(const ox of offsets)precisionBullets.push({x:h.x+ox,y:h.y-38,vx:0,vy:-(type==='ninja'?690:type==='fox'?660:620),r:type==='archmage'?11:type==='mage'?12:10,life:1.5,ownerType:type,type:(type==='ninja'||type==='fox')?'shuriken':'fire'});
+ for(const oy of offsets)precisionBullets.push({x:h.x+38,y:h.y+oy-8,vx:(type==='ninja'?690:type==='fox'?660:620),vy:0,r:type==='archmage'?11:type==='mage'?12:10,life:1.5,ownerType:type,type:(type==='ninja'||type==='fox')?'shuriken':'fire'});
  precisionFireCd=type==='archmage'?.64:type==='mage'?.58:.52;h.attackAnim=.12
 }
 function precisionHitScore(distance,r){const q=distance/r;return q<=.18?100:q<=.48?50:20}
 function updatePrecisionShootingGame(dt){
  trainingElapsed+=dt;precisionSpawnTimer-=dt;precisionFireCd=Math.max(0,precisionFireCd-dt);
  if(trainingElapsed>=PRECISION_DURATION){trainingElapsed=PRECISION_DURATION;finishPrecisionShootingTraining();return}
- const h=heroes[0];if(h){let mx=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+joy.x;if(Math.abs(mx)>.08)h.x+=Math.sign(mx)*260*dt;h.x=clamp(h.x,145,855);h.y=850;h.facing={x:0,y:-1}}
+ const h=heroes[0];if(h){let my=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+joy.y;if(Math.abs(my)>.08)h.y+=Math.sign(my)*260*dt;h.x=175;h.y=clamp(h.y,190,810);h.facing={x:1,y:0}}
  if(pressed.has('KeyJ')){pressed.delete('KeyJ');firePrecisionBullet()}
  while(precisionSpawnTimer<=0){if(precisionTargets.length<5)spawnPrecisionTarget();precisionSpawnTimer+=Math.max(.72,1.12-trainingElapsed*.004)}
- for(let i=precisionBullets.length-1;i>=0;i--){const b=precisionBullets[i];b.life-=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.life<=0||b.y<115){precisionBullets.splice(i,1);continue}let hit=false;for(let j=precisionTargets.length-1;j>=0;j--){const t=precisionTargets[j],d=Math.hypot(b.x-t.x,b.y-t.y);if(d<b.r+t.r){const points=precisionHitScore(d,t.r),label=points===100?'PERFECT':points===50?'GOOD':'HIT',color=points===100?'#ffe36b':points===50?'#9fe8ff':'#ffffff';precisionScore+=points;precisionCombo++;precisionJudgeFx.push({x:t.x,y:t.y-48,text:`${label} +${points}`,color,life:.75});burst(t.x,t.y,color,16,190);precisionTargets.splice(j,1);precisionBullets.splice(i,1);hit=true;break}}if(hit)continue}
- for(let i=precisionTargets.length-1;i>=0;i--){const t=precisionTargets[i];t.life-=dt;t.wobble+=dt*1.8;t.y+=t.vy*dt;t.x+=Math.sin(t.wobble)*5*dt;if(t.y>820||t.life<=0){precisionTargets.splice(i,1);precisionCombo=0}}
+ for(let i=precisionBullets.length-1;i>=0;i--){const b=precisionBullets[i];b.life-=dt;b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.life<=0||b.x>965){precisionBullets.splice(i,1);continue}let hit=false;for(let j=precisionTargets.length-1;j>=0;j--){const t=precisionTargets[j],d=Math.hypot(b.x-t.x,b.y-t.y);if(d<b.r+t.r){const points=precisionHitScore(d,t.r),label=points===100?'PERFECT':points===50?'GOOD':'HIT',color=points===100?'#ffe36b':points===50?'#9fe8ff':'#ffffff';precisionScore+=points;precisionCombo++;precisionJudgeFx.push({x:t.x-58,y:t.y,text:`${label} +${points}`,color,life:.75});burst(t.x,t.y,color,16,190);precisionTargets.splice(j,1);precisionBullets.splice(i,1);hit=true;break}}if(hit)continue}
+ for(let i=precisionTargets.length-1;i>=0;i--){const t=precisionTargets[i];t.life-=dt;t.wobble+=dt*1.8;t.y+=t.vy*dt;t.x+=Math.sin(t.wobble)*2*dt;if(t.y>865||t.life<=0){precisionTargets.splice(i,1);precisionCombo=0}}
  for(let i=precisionJudgeFx.length-1;i>=0;i--){const f=precisionJudgeFx[i];f.life-=dt;f.y-=26*dt;if(f.life<=0)precisionJudgeFx.splice(i,1)}
  updateUI();released.clear()
 }

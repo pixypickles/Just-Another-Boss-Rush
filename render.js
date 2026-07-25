@@ -14,13 +14,17 @@ function drawShootingTraining(){
 function drawPrecisionShootingTraining(){
  ctx.save();
  ctx.fillStyle='#07111d';ctx.fillRect(0,100,W,H-100);
- ctx.fillStyle='#10243a';ctx.fillRect(120,125,760,690);ctx.strokeStyle='#ffd66b';ctx.lineWidth=4;ctx.strokeRect(120,125,760,690);
- for(let x=215;x<=785;x+=190){ctx.strokeStyle='#ffffff12';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,125);ctx.lineTo(x,815);ctx.stroke()}
+ ctx.fillStyle='#10243a';ctx.fillRect(90,125,190,740);ctx.strokeStyle='#5bd7ff';ctx.lineWidth=4;ctx.strokeRect(90,125,190,740);
+ ctx.fillStyle='#9fe8ff';ctx.font='bold 18px sans-serif';ctx.textAlign='center';ctx.fillText('上下移動エリア',185,155);
+ ctx.fillStyle='#231d18';ctx.fillRect(755,125,190,740);ctx.strokeStyle='#ffd66b';ctx.lineWidth=4;ctx.strokeRect(755,125,190,740);
+ ctx.strokeStyle='#ffffff22';ctx.lineWidth=2;for(let x=790;x<=910;x+=60){ctx.beginPath();ctx.moveTo(x,125);ctx.lineTo(x,865);ctx.stroke()}
+ ctx.fillStyle='#ffd66b';ctx.fillText('的の流れるレーン',850,155);
+ ctx.strokeStyle='#ffffff18';ctx.setLineDash([12,12]);ctx.beginPath();ctx.moveTo(285,500);ctx.lineTo(750,500);ctx.stroke();ctx.setLineDash([]);
  for(const t of precisionTargets){ctx.save();ctx.translate(t.x,t.y);ctx.fillStyle='#f4f0df';ctx.strokeStyle='#5d3b20';ctx.lineWidth=5;ctx.beginPath();ctx.arc(0,0,t.r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#e94d45';ctx.beginPath();ctx.arc(0,0,t.r*.62,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f7f1df';ctx.beginPath();ctx.arc(0,0,t.r*.34,0,Math.PI*2);ctx.fill();ctx.fillStyle='#e94d45';ctx.beginPath();ctx.arc(0,0,t.r*.14,0,Math.PI*2);ctx.fill();ctx.restore()}
  for(const b of precisionBullets){ctx.save();ctx.translate(b.x,b.y);if(b.type==='shuriken'){ctx.rotate(performance.now()/75);ctx.fillStyle=b.ownerType==='fox'?'#f5fdff':'#dbe7ff';ctx.strokeStyle='#5c79a8';ctx.lineWidth=2;for(let k=0;k<4;k++){ctx.rotate(Math.PI/2);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(16,5);ctx.lineTo(7,0);ctx.lineTo(16,-5);ctx.closePath();ctx.fill();ctx.stroke()}}else{ctx.fillStyle=b.ownerType==='archmage'?'#5fa8ff':'#ff753b';ctx.shadowBlur=14;ctx.shadowColor=ctx.fillStyle;ctx.beginPath();ctx.arc(0,0,b.r,0,Math.PI*2);ctx.fill()}ctx.restore()}
  heroes[0]?.draw(0);
  for(const f of precisionJudgeFx){ctx.save();ctx.globalAlpha=Math.min(1,f.life*2);ctx.fillStyle=f.color;ctx.textAlign='center';ctx.font='bold 28px sans-serif';ctx.fillText(f.text,f.x,f.y);ctx.restore()}
- ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 31px sans-serif';ctx.fillText(`SCORE ${precisionScore}`,500,105);ctx.font='bold 22px sans-serif';ctx.fillText(`COMBO ${precisionCombo}`,500,140);ctx.font='bold 18px sans-serif';ctx.fillStyle='#e8edf2';ctx.fillText('方向キー：左右移動　A：射撃　中心100 / 内側50 / 外側20',500,930);ctx.restore()
+ ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='bold 31px sans-serif';ctx.fillText(`SCORE ${precisionScore}`,500,105);ctx.font='bold 22px sans-serif';ctx.fillText(`COMBO ${precisionCombo}`,500,140);ctx.font='bold 18px sans-serif';ctx.fillStyle='#e8edf2';ctx.fillText('方向キー：上下移動　A：右へ射撃　中心100 / 内側50 / 外側20',500,930);ctx.restore()
 }
 
 function drawMoleTraining(){

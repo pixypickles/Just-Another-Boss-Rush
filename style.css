@@ -308,3 +308,10 @@
 @media(max-width:620px){.mimicBossRow{grid-template-columns:1fr 1fr}.mimicBossRow>b{grid-column:1/-1}.mimicSetupCard{padding:14px}.mimicSkillSelect{font-size:11px;padding:8px 5px}}
 
 @media(max-width:700px){#notice{top:20%;width:92%;font-size:clamp(18px,5vw,34px);line-height:1.12}}
+
+/* v68 training ground */
+.mainActions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+#trainingPlay{border:0;border-radius:999px;padding:14px 24px;font:inherit;font-weight:1000;font-size:18px;color:#071b24;background:linear-gradient(#bdf5ff,#4fc3e8);box-shadow:0 8px 0 #17647b,0 16px 35px #0007;cursor:pointer}
+#trainingPlay:disabled{filter:grayscale(1);opacity:.48;cursor:not-allowed;box-shadow:none}
+.trainingRank{max-width:500px;margin:15px auto 0;padding:10px 14px;border-radius:13px;background:#0b111dd9;border:1px solid #ffffff20;color:#dce9f7;font-size:12px;line-height:1.55;text-align:left}
+.trainingRank b{color:#9feaff}.trainingRank .rankRow{display:grid;grid-template-columns:36px 1fr 100px;gap:8px;border-top:1px solid #ffffff12;padding:4px 0}.trainingRank .rankRow:first-of-type{border-top:0}

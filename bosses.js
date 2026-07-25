@@ -137,3 +137,33 @@ function setupBattle(){
  updateUI();notice(foxMode?'キツネ対戦――三影を打ち破れ！':bushinMode?'武神挑戦――力を示せ！':(awakenedMode?'覚醒・封印の間 ':'封印の間 ')+(bossIndex+1),foxMode?'#bceeff':bushinMode?'#ffc98a':awakenedMode?'#fff08a':'#ffd88b',1100)
 }
 function bossDefeated(){resetCombatInput();if(foxMode){running=false;let msg='白狐忍・三影を撃破！';if(!isFoxUnlocked()){saveFoxUnlock();unlockFoxChoice();msg+=' 白狐忍が仲間になった！'}notice(msg,'#d7f7ff',3600);document.getElementById('loadStatus').textContent=msg;setTimeout(()=>ui.start.style.display='grid',1600);return}if(bushinMode){running=false;let msg='武神撃破！ 真の強者の証を得た！';if(!isPlayableBushinUnlocked()){savePlayableBushinUnlock();unlockBushinChoice();msg+=' 武神はその強さを認め、秘伝の武術を解放した！ 武神が仲間になった！'}notice(msg,'#fff08a',3800);document.getElementById('loadStatus').textContent=msg;setTimeout(()=>ui.start.style.display='grid',1600);return}if(bossIndex===1&&!isDraculaUnlocked()&&selectedTypes.length>0&&selectedTypes.every(t=>t==='healer'||t==='highpriest')){saveDraculaUnlock();unlockDraculaChoice();notice('ドラキュラ 解放！ 聖なる力により魔王による呪いが解けた！','#f3a1bc',1800);document.getElementById('loadStatus').textContent='ドラキュラが解放されました！'}for(const h of heroes)h.chargeB=0;awakeningSoloCarry=null;if(awakenedMode){const h=heroes.find(x=>!x.dead);if(h&&((h.type==='magicblade'&&h.demonMode>0)||(h.type==='ninja'&&h.cloneTime>0)||(h.type==='runemage'&&h.runeOverload>0)||(h.type==='highpriest'&&h.divineMode>0)||(h.type==='qigong'&&h.qigongFocus>0)||(h.type==='dragonknight'&&h.dragonBreath>0)||(h.type==='dracula'&&h.dominationTime>0)))awakeningSoloCarry={type:h.type}}transition=2.2;notice('BOSS DEFEATED!','#fff08a',1500);for(const h of heroes)if(!h.dead)h.heal(h.maxHp*.24)}
+
+// v68 training ground
+function createTrainingProxy(){
+ return {kind:'training',name:'修行場',x:500,y:500,r:1,hp:100,maxHp:100,dead:false,inv:0,volley:0,vx:0,vy:0,
+  update(){const t=minions[0];if(t){this.x=t.x;this.y=t.y}},
+  draw(){},
+  hurt(n){const t=minions.reduce((best,m)=>!best||Math.hypot(m.x-this.x,m.y-this.y)<Math.hypot(best.x-this.x,best.y-this.y)?m:best,null);if(!t)return false;t.hp-=n;return true}
+ }
+}
+function spawnTrainingMinion(){
+ if(!trainingMode||trainingFinished||trainingKills+minions.length>=100||minions.length>=8)return;
+ const points=[[145,190],[855,190],[145,825],[855,825]],p=points[Math.floor(Math.random()*points.length)],strong=Math.random()<Math.min(.32,.08+trainingKills*.0022),hp=strong?190:105;
+ minions.push({x:p[0]+rnd(-25,25),y:p[1]+rnd(-25,25),vx:0,vy:0,r:strong?27:21,hp,maxHp:hp,life:9999,cd:rnd(.35,.9),damage:strong?34:23,strong,training:true})
+}
+function setupTrainingBattle(){
+ resetCombatInput();
+ heroes=[new Hero(selectedTypes[0],500,545)];heroes.forEach(validateHeroSkills);heroIndex=0;
+ boss=createTrainingProxy();
+ shots.length=particles.length=walls.length=slashes.length=fistTrails.length=minions.length=lasers.length=holyFx.length=holyDots.length=runes.length=0;
+ trainingKills=0;trainingElapsed=0;trainingSpawnTimer=0;trainingFinished=false;
+ for(let i=0;i<6;i++)spawnTrainingMinion();
+ updateUI();notice('修行開始――手下100体を倒せ！','#9feaff',1500)
+}
+function finishTraining(){
+ if(trainingFinished)return;trainingFinished=true;running=false;resetCombatInput();
+ const h=heroes[0],ranks=saveTrainingRank(trainingElapsed,h.type),rank=ranks.findIndex(r=>r.type===h.type&&Math.abs(r.time-trainingElapsed)<.002)+1;
+ const msg=`FINISH!! ${formatTrainingTime(trainingElapsed)}${rank>0?' / TOP '+rank:''}`;
+ notice(msg,'#fff08a',4200);document.getElementById('loadStatus').textContent=`100体撃破 ${formatTrainingTime(trainingElapsed)}　${heroInfo[h.type].name}`;
+ if(window.refreshTrainingMenu)window.refreshTrainingMenu();setTimeout(()=>ui.start.style.display='grid',1700)
+}

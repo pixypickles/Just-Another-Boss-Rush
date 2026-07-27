@@ -42,6 +42,7 @@ function draw(){
  ctx.save();
  if(shake>0){ctx.translate(rnd(-shake,shake),rnd(-shake,shake));shake*=.84}
  drawArena();
+ if(trainingMode&&trainingChallenge==='soccer'){drawSoccerGame();ctx.restore();ctx.globalAlpha=1;return}
  if(trainingMode&&trainingChallenge==='mole'){drawMoleTraining();ctx.restore();ctx.globalAlpha=1;return}if(trainingMode&&trainingChallenge==='shooting'){drawShootingTraining();ctx.restore();ctx.globalAlpha=1;return}if(trainingMode&&trainingChallenge==='precision'){drawPrecisionShootingTraining();ctx.restore();ctx.globalAlpha=1;return}
  if(trainingMode){for(let i=0;i<TRAINING_SPAWN_POINTS.length;i++){const [x,y]=TRAINING_SPAWN_POINTS[i],flash=trainingSpawnFlash[i]||0,pulse=1+flash*1.1;ctx.save();ctx.translate(x,y);ctx.scale(pulse,pulse);ctx.globalAlpha=.42+flash*.9;ctx.strokeStyle=flash>0?'#6f7680':'#050607';ctx.fillStyle='#00000055';ctx.lineWidth=flash>0?8:6;ctx.beginPath();ctx.arc(0,0,31,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-16,-16);ctx.lineTo(16,16);ctx.moveTo(16,-16);ctx.lineTo(-16,16);ctx.stroke();ctx.restore()}}
  if(!boss||!heroes.length){ctx.restore();ctx.globalAlpha=1;return}

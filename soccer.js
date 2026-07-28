@@ -38,7 +38,29 @@ function soccerAttack(p,slot){if(p.stun>0)return;if(!p.skillCd)p.skillCd={a:0,b:
  if(t==='mimic'){if(slot==='a'){soccerAttackEffect(p,slot,pow,'club',{r:82});soccerApplyForce(p,pow*1.28*melee);soccerHitPlayers(p,pow*1.15*melee,145,-.12);soccerArea(p,pow*.42,92,'#d9b078','clubShock')}else if(slot==='b'){[-.12,0,.12].forEach(a=>soccerShot(p,{angle:a,power:pow*.62,speed:590,r:18,color:'#ff7b3d',shape:'fire'}))}else{soccerDash(p,pow*.72,92,.12);setTimeout(()=>{if(!soccerPlayers.includes(p))return;soccerDash(p,pow*.72,92,.12)},95)}return}
  const reach=slot==='a'?34:0,dir=norm(p.aimX||((p.team)?-1:1),p.aimY||0),fake=reach?{...p,x:p.x+dir.x*reach,y:p.y+dir.y*reach,aimX:dir.x,aimY:dir.y}:p;soccerAttackEffect(p,slot,pow,'strike',{length:slot==='a'?88:undefined});soccerApplyForce(fake,pow*melee);soccerHitPlayers(fake,pow*melee,slot==='a'?148:120,slot==='a'?.05:.25)
 }
-function soccerBushinKick(p){const d=norm(soccerBall.x-p.x,soccerBall.y-p.y),dist=Math.hypot(soccerBall.x-p.x,soccerBall.y-p.y),travel=Math.min(105,Math.max(38,dist-soccerBall.r-p.r+8)),ox=p.x,oy=p.y;p.x+=d.x*travel;p.y+=d.y*travel;soccerConstrain(p,false);p.kickLift=.34;soccerEffects.push({id:soccerEffectId++,kind:'dash',x:ox,y:oy,x2:p.x,y2:p.y,life:.16,max:.16,team:p.team,power:20});if(Math.hypot(soccerBall.x-p.x,soccerBall.y-p.y)<soccerBall.r+p.r+34){soccerApplyForce(p,20);p.vx=0;p.vy=0;p.stun=Math.max(p.stun,.08)}}
+function soccerBushinKick(p){
+ const ox=p.x,oy=p.y,dirX=soccerBall.x>=p.x?1:-1,hitRadius=soccerBall.r+p.r+18;
+ // 横一直線に画面端まで駆け抜ける。鉄球が進路上にある場合だけ命中地点で停止する。
+ const side=soccerSideBoundary(p.y),edgeX=dirX>0?1000-side-p.r:side+p.r;
+ let endX=edgeX,hit=false;
+ const dx=soccerBall.x-p.x;
+ if(dx*dirX>0&&Math.abs(soccerBall.y-p.y)<=hitRadius){
+  const along=Math.abs(dx)-Math.sqrt(Math.max(0,hitRadius*hitRadius-(soccerBall.y-p.y)*(soccerBall.y-p.y)));
+  if(along>=0&&along<=Math.abs(edgeX-p.x)){endX=p.x+dirX*along;hit=true}
+ }
+ p.x=endX;p.y=oy;soccerConstrain(p,false);p.kickLift=.34;
+ soccerEffects.push({id:soccerEffectId++,kind:'dash',x:ox,y:oy,x2:p.x,y2:p.y,life:.24,max:.24,team:p.team,power:112,bushin:true});
+ if(hit){
+  // 中心付近はほぼ真横。上下へ外すほどビリヤードのように斜めへ飛ばす（判定は甘め）。
+  const offset=clamp((soccerBall.y-oy)/(soccerBall.r*.92),-1,1),center=Math.abs(offset)<.34;
+  const angle=center?0:offset*.34,fx=Math.cos(angle)*dirX,fy=Math.sin(angle);
+  const impulse=112;
+  if(soccerTimeStop>0){soccerBall.pendingX+=fx*impulse;soccerBall.pendingY+=fy*impulse}
+  else{soccerBall.vx+=fx*impulse*26;soccerBall.vy+=fy*impulse*26}
+  burst(soccerBall.x,soccerBall.y,p.team?'#ff9ca8':'#8ed8ff',28,420);shake=22;
+  p.vx=0;p.vy=0;p.stun=Math.max(p.stun,.08)
+ }
+}
 function soccerFoxFire(p){p.foxFire=2.6;p.soloCd=12;soccerMessage='狐火九星！';soccerMessageLife=1;for(let wave=0;wave<3;wave++)setTimeout(()=>{if(!soccerPlayers.includes(p))return;for(let k=0;k<3;k++){const a=wave*.72+k*Math.PI*2/3,ex=p.x+Math.cos(a)*42,ey=p.y+Math.sin(a)*42;soccerEffects.push({id:soccerEffectId++,kind:'foxfire',x:ex,y:ey,angle:a,owner:p,team:p.team,r:17,life:2.4,max:2.4,power:3.15*soccerTypePower(p.type),hitBall:false,color:'#b9f2ff'})}burst(p.x,p.y,'#b9f2ff',18,220)},wave*220)}
 function soccerSolo(p){if(p.soloCd>0)return;
  if(p.type==='archmage'){soccerTimeStop=5;p.soloCd=20;soccerMessage='TIME STOP!';soccerMessageLife=1.1;return}

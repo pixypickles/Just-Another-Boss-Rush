@@ -1,4 +1,4 @@
-document.querySelectorAll('.tb').forEach(b=>{const code=b.dataset.key;const down=e=>{const moleNow=trainingMode&&trainingChallenge==='mole',soccerNow=trainingMode&&trainingChallenge==='soccer',trainingShotNow=trainingMode&&(trainingChallenge==='shooting'||trainingChallenge==='precision')&&code==='KeyJ';if(moleNow){const mx=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+joy.x,my=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+joy.y;moleInputQueue.push({code,mx,my});if(moleInputQueue.length>8)moleInputQueue.shift();pressed.add(code)}else if(soccerNow){keys.delete(code);pressed.add(code);keys.add(code)}else if(trainingShotNow||!keys.has(code)||(code==='KeyI'&&awakenedMode))pressed.add(code);keys.add(code);b.classList.add('active');e.preventDefault()},up=e=>{if(keys.has(code))released.add(code);keys.delete(code);b.classList.remove('active');e.preventDefault?.()};b.addEventListener('touchstart',down,{passive:false});b.addEventListener('touchend',up,{passive:false});b.addEventListener('touchcancel',up,{passive:false});b.addEventListener('mousedown',down);b.addEventListener('mouseup',up);b.addEventListener('mouseleave',e=>{if(e.buttons===0)up(e)});b.addEventListener('contextmenu',e=>e.preventDefault())});
+document.querySelectorAll('.tb').forEach(b=>{const code=b.dataset.key;const down=e=>{window.sfx?.unlock();window.sfx?.play(code==='KeyJ'?'attack':code==='KeyK'?'special':code==='KeyL'?'support':'solo');const moleNow=trainingMode&&trainingChallenge==='mole',soccerNow=trainingMode&&trainingChallenge==='soccer',trainingShotNow=trainingMode&&(trainingChallenge==='shooting'||trainingChallenge==='precision')&&code==='KeyJ';if(moleNow){const mx=(keys.has('KeyD')||keys.has('ArrowRight')?1:0)-(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)+joy.x,my=(keys.has('KeyS')||keys.has('ArrowDown')?1:0)-(keys.has('KeyW')||keys.has('ArrowUp')?1:0)+joy.y;moleInputQueue.push({code,mx,my});if(moleInputQueue.length>8)moleInputQueue.shift();pressed.add(code)}else if(soccerNow){keys.delete(code);pressed.add(code);keys.add(code)}else if(trainingShotNow||!keys.has(code)||(code==='KeyI'&&awakenedMode))pressed.add(code);keys.add(code);b.classList.add('active');e.preventDefault()},up=e=>{if(keys.has(code))released.add(code);keys.delete(code);b.classList.remove('active');e.preventDefault?.()};b.addEventListener('touchstart',down,{passive:false});b.addEventListener('touchend',up,{passive:false});b.addEventListener('touchcancel',up,{passive:false});b.addEventListener('mousedown',down);b.addEventListener('mouseup',up);b.addEventListener('mouseleave',e=>{if(e.buttons===0)up(e)});b.addEventListener('contextmenu',e=>e.preventDefault())});
 addEventListener('blur',()=>resetCombatInput());document.addEventListener('visibilitychange',()=>{if(document.hidden)resetCombatInput()});
 const playButton=document.getElementById('play');
 const modeSelect=document.getElementById('partyMode'),partyChoices=[...document.querySelectorAll('.partyChoice')],startChoices=[...document.querySelectorAll('input[name="startHero"]')];
@@ -159,7 +159,7 @@ function launchBattle(){
  const launch=()=>{try{bossIndex=0;transition=0;setupBattle();running=true;last=performance.now();ui.notice.style.opacity=0;ui.start.style.display='none';playButton.disabled=false;playButton.textContent='ボス部屋へ入る';startingGame=false}catch(err){running=false;ui.start.style.display='grid';playButton.disabled=false;playButton.textContent='ボス部屋へ入る';startingGame=false;const status=document.getElementById('loadStatus');status.textContent='開始エラー: '+(err&&err.message?err.message:String(err));console.error(err)}};
  requestAnimationFrame(launch);setTimeout(()=>{if(startingGame)launch()},180)
 }
-function startGame(e){
+function startGame(e){window.sfx?.unlock();window.sfx?.play('ui');
  if(e){e.preventDefault?.();e.stopPropagation?.()}
  const now=performance.now();if(startingGame||now-lastStartRequest<250)return;lastStartRequest=now;
  syncPartySetup();
@@ -171,7 +171,7 @@ function startGame(e){
 }
 window.__bossRushStart=startGame;
 
-function startTraining(e,challenge='time'){
+function startTraining(e,challenge='time'){window.sfx?.unlock();window.sfx?.play('ui');
  e.preventDefault();
  if(!isTrainingUnlocked()||startingGame)return;
  const need=trainingSelectedTypes.length;
@@ -192,3 +192,5 @@ window.refreshTrainingMenu=refreshTrainingMenu;
 ['click','pointerup','touchend'].forEach(type=>playButton.addEventListener(type,startGame,{passive:false}));
 addEventListener('keydown',e=>{if(!running&&ui.start.style.display!=='none'&&(e.code==='Enter'||e.code==='Space'))startGame(e)});
 loadSprites();requestAnimationFrame(loop);
+
+addEventListener('keydown',e=>{if(!e.repeat&&running){const n={KeyJ:'attack',KeyK:'special',KeyL:'support',KeyI:'solo'}[e.code];if(n)window.sfx?.play(n)}});
